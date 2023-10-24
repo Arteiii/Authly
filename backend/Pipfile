@@ -4,11 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-fastapi = "*"
 pydantic-settings = "*"
 argon2-cffi = "*"
 bcrypt = "*"
 motor = "*"
+pydantic = "*"
+fastapi = {extras = ["all"], version = "*"}
 
 [dev-packages]
 uvicorn = {extras = ["standard"], version = "*"}

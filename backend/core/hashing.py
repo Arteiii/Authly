@@ -103,12 +103,12 @@ class Argon:
             str: The Argon2 hash of the password.
         """
         hasher = argon2.PasswordHasher(
-            time_cost=config.argon_config.TIME_COST,
-            memory_cost=config.argon_config.MEMORY_COST,
-            parallelism=config.argon_config.PARALLELISM,
-            hash_len=config.argon_config.HASH_LEN,
-            salt_len=config.argon_config.SALT_LEN,
-            encoding=config.argon_config.ENCODING,
+            time_cost=argon_config.TIME_COST,
+            memory_cost=argon_config.MEMORY_COST,
+            parallelism=argon_config.PARALLELISM,
+            hash_len=argon_config.HASH_LEN,
+            salt_len=argon_config.SALT_LEN,
+            encoding=argon_config.ENCODING,
         )
         return hasher.hash(password)
 

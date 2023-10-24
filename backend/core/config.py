@@ -3,6 +3,7 @@ This is a Python script for handling configuration settings using Pydantic.
 It reads a JSON file and validates it against a predefined Pydantic model.
 """
 
+import os
 import json
 from enum import Enum
 from pydantic_settings import BaseSettings
@@ -18,6 +19,10 @@ class HashingAlgorithmTypes(str, Enum):
 ############################################################
 #                       JSON FORMAT                        #
 ############################################################
+
+
+class Debug(BaseSettings):
+    DebugHashingTime: bool = False
 
 
 class API_V1(BaseSettings):
@@ -108,8 +113,8 @@ class ArgonHashingAlgorithm(BaseSettings):
             The character encoding used for hashing, e.g., 'utf-8'.
     """
 
-    TIME_COST: int = 1048576
-    MEMORY_COST: int = 65536
+    TIME_COST: int = 3
+    MEMORY_COST: int = 128
     PARALLELISM: int = 4
     SALT_LEN: int = 16
     HASH_LEN: int = 32
@@ -248,15 +253,27 @@ class AppConfig(BaseSettings):
             Configuration settings for the session manager.
     """
 
+    Debug: Debug
     API: API
     PasswordConfig: PasswordConfig
     MongodbSettings: MongodbSettings
     SessionManagerSettings: SessionManagerSettings
 
 
+# Get the directory of the current script or module
+script_directory = os.path.dirname(os.path.realpath(__file__))
+
+# Move up one directory to reach the parent directory
+parent_directory = os.path.abspath(os.path.join(script_directory, os.pardir))
+
+# Construct the relative path to the JSON file in the parent directory
+json_file_path = os.path.join(parent_directory, "config.json")
+
+print(json_file_path)
+
 # Load JSON file
 with open(
-    R"C:\Users\user\Desktop\versioning_api_with_fastapi\config.json",
+    json_file_path,
     encoding="utf-8",
 ) as f:
     config_data = json.load(f)
