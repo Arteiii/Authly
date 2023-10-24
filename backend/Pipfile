@@ -9,6 +9,8 @@ pydantic-settings = "*"
 argon2-cffi = "*"
 bcrypt = "*"
 motor = "*"
+pytest = "*"
+uvicorn = {extras = ["standard"], version = "*"}
 
 [dev-packages]
 
