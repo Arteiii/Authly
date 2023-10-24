@@ -1,3 +1,16 @@
+"""
+Password Hashing and Verification Module
+
+This module provides classes and methods for\
+    password hashing and verification using
+Bcrypt and Argon2 hashing algorithms.\
+    It also includes a Hasher class for handling
+password hashing and verification using various algorithms.
+
+Author: Arteii
+Date: 24/10/2023
+"""
+
 import bcrypt
 import argon2
 
