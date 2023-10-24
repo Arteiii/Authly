@@ -12,8 +12,8 @@ Date: 24/10/2023
 """
 
 import motor.motor_asyncio
-from pymongo.errors import DuplicateKeyError
 from core.config import config
+from pymongo.errors import DuplicateKeyError
 
 
 class MongoDBClient:
@@ -91,9 +91,7 @@ class MongoDBClient:
             returns the document.
         If not found, it returns None.
         """
-        document = await self.db[collection_name].find_one(
-            {"_id": document_id}
-        )
+        document = await self.db[collection_name].find_one({"_id": document_id})
         return document
 
     async def update_document(self, collection_name, document_id, update_data):
@@ -131,9 +129,7 @@ class MongoDBClient:
         Deletes a document from the specified collection by its _id.
         Returns the number of documents deleted.
         """
-        result = await self.db[collection_name].delete_one(
-            {"_id": document_id}
-        )
+        result = await self.db[collection_name].delete_one({"_id": document_id})
         return result.deleted_count
 
     async def close(self):

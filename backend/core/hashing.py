@@ -11,9 +11,8 @@ Author: Arteii
 Date: 24/10/2023
 """
 
-import bcrypt
 import argon2
-
+import bcrypt
 from core.config import config
 
 argon_config = config.PasswordConfig.ArgonHashingAlgorithm

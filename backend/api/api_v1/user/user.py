@@ -2,17 +2,12 @@
 main.py
 """
 import time
-import json
-
-from typing import List
-from fastapi import APIRouter, Query, FastAPI, HTTPException
-from bson import ObjectId
 
 from api.api_v1.user import model
-from core.hashing import Hasher
-from core.db.mongo import MongoDBClient
 from core.config import config
-
+from core.db.mongo import MongoDBClient
+from core.hashing import Hasher
+from fastapi import APIRouter
 
 # utils
 

@@ -14,6 +14,7 @@ fastapi = {extras = ["all"], version = "*"}
 [dev-packages]
 uvicorn = {extras = ["standard"], version = "*"}
 pytest = "*"
+mypy = "*"
 
 [requires]
 python_version = "3.11"

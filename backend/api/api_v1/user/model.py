@@ -1,11 +1,10 @@
 import base64
-
-from pydantic import BaseModel, EmailStr, constr, validator, Field
-
-from core.password_validation import validate_password_complexity
-from core.config import config
-from core.username_validation import validate_username
 from typing import Dict
+
+from core.config import config
+from core.password_validation import validate_password_complexity
+from core.username_validation import validate_username
+from pydantic import BaseModel, EmailStr, Field, constr, validator
 
 
 class UserDataResponse(BaseModel):
@@ -63,10 +62,10 @@ class UserRegistration(BaseModel):
             # If the checks pass, return the decoded password
             return value
 
-        except base64.binascii.Error:
+        except base64.binascii.Error as err:
             # If the decoding fails due to invalid Base64,
             # raise a validation error
-            raise ValueError("Invalid Base64-encoded password")
+            raise ValueError("Invalid Base64-encoded password") from err
 
     @validator("username")
     def validate_username(cls, value):

@@ -4,9 +4,9 @@ routes for different api versions
 
 import sys
 
-from fastapi import APIRouter
-from core.config import config
 from api.api_v1.api import api_router as api_v1
+from core.config import config
+from fastapi import APIRouter
 
 API_V1 = config.API.API_V1
 API_V2 = config.API.API_V2
