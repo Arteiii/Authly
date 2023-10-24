@@ -29,8 +29,8 @@ class API_V1(BaseSettings):
         API_V1_ROUTE (str): The route for API version 1. Default is "/v1".
     """
 
-    API_V1_ACTIVE: bool
-    API_V1_ROUTE: str
+    API_V1_ACTIVE: bool = True
+    API_V1_ROUTE: str = "/v1"
 
 
 class API_V2(BaseSettings):
@@ -42,8 +42,9 @@ class API_V2(BaseSettings):
         API_V2_ROUTE (str): The route for API version 2. Default is "/v2".
     """
 
-    API_V2_ACTIVE: bool
-    API_V2_ROUTE: str
+    API_V2_ACTIVE: bool = False
+    API_V2_ROUTE: str = "/v2"
+    # not yet available
 
 
 class API(BaseSettings):
@@ -56,7 +57,7 @@ class API(BaseSettings):
         API_V2 (API_V2): Configuration settings for API version 2.
     """
 
-    API_ROUTE: str
+    API_ROUTE: str = "/api"
     API_V1: API_V1
     API_V2: API_V2
 
@@ -70,8 +71,8 @@ class BcryptHashingAlgorithm(BaseSettings):
         ENCODING (str): The character encoding used for hashing, e.g., 'utf-8'.
     """
 
-    ROUNDS: int
-    ENCODING: str
+    ROUNDS: int = 12
+    ENCODING: str = "utf-8"
 
 
 class ArgonHashingAlgorithm(BaseSettings):
@@ -87,12 +88,12 @@ class ArgonHashingAlgorithm(BaseSettings):
         ENCODING (str): The character encoding used for hashing, e.g., 'utf-8'.
     """
 
-    TIME_COST: int
-    MEMORY_COST: int
-    PARALLELISM: int
-    HASH_LEN: int
-    SALT_LEN: int
-    ENCODING: str
+    TIME_COST: int = 1048576
+    MEMORY_COST: int = 65536
+    PARALLELISM: int = 4
+    SALT_LEN: int = 16
+    HASH_LEN: int = 32
+    ENCODING: str = "utf-8"
 
 
 class PasswordConfig(BaseSettings):
@@ -108,12 +109,12 @@ class PasswordConfig(BaseSettings):
         DEFAULT_PASSWORD_MAX_LENGTH (int): The default maximum password length. Default is 50.
     """
 
-    USE_PASSWORD_HASHING: bool
-    HASHING_ALGORITHM: HashingAlgorithmTypes
+    USE_PASSWORD_HASHING: bool = True
+    HASHING_ALGORITHM: HashingAlgorithmTypes = "argon2"
     BcryptHashingAlgorithm: BcryptHashingAlgorithm
     ArgonHashingAlgorithm: ArgonHashingAlgorithm
-    DEFAULT_PASSWORD_MIN_LENGTH: int
-    DEFAULT_PASSWORD_MAX_LENGTH: int
+    DEFAULT_PASSWORD_MIN_LENGTH: int = 11
+    DEFAULT_PASSWORD_MAX_LENGTH: int = 50
 
 
 class MongodbSettings(BaseSettings):
@@ -140,23 +141,22 @@ class MongodbSettings(BaseSettings):
         MONGODB_SOCKET_TIMEOUT_MS (int): The socket timeout.
     """
 
-    MONGODB_HOST: str
-    MONGODB_PORT: int
-    DB_NAME: str
+    MONGODB_URL: str = "mongodb://localhost:27017"
+    MONGODB_NAME: str = "mydb"
     MONGODB_USERNAME: str
     MONGODB_PASSWORD: str
-    MONGODB_USE_SSL: bool
-    MONGODB_AUTH_MECHANISM: str
-    MONGODB_MAX_POOL_SIZE: int
-    MONGODB_MIN_POOL_SIZE: int
-    MONGODB_MAX_IDLE_TIME_MS: int
-    MONGODB_WAIT_QUEUE_TIMEOUT_MS: int
-    MONGODB_SERVER_SELECTION_TIMEOUT_MS: int
-    MONGODB_READ_CONCERN: str
-    MONGODB_WRITE_CONCERN: str
-    MONGODB_RETRY_WRITES: bool
-    MONGODB_CONNECT_TIMEOUT_MS: int
-    MONGODB_SOCKET_TIMEOUT_MS: int
+    MONGODB_USE_SSL: bool = False
+    MONGODB_AUTH_MECHANISM: str = "SCRAM-SHA-256"
+    MONGODB_MAX_POOL_SIZE: int = 100
+    MONGODB_MIN_POOL_SIZE: int = 1
+    MONGODB_MAX_IDLE_TIME_MS: int = 10000
+    MONGODB_WAIT_QUEUE_TIMEOUT_MS: int = 2000
+    MONGODB_SERVER_SELECTION_TIMEOUT_MS: int = 30000
+    MONGODB_READ_CONCERN: str = "local"
+    MONGODB_WRITE_CONCERN: str = "local"
+    MONGODB_RETRY_WRITES: bool = True
+    MONGODB_CONNECT_TIMEOUT_MS: int = 20000
+    MONGODB_SOCKET_TIMEOUT_MS: int = 30000
 
 
 class SessionManagerSettings(BaseSettings):
@@ -173,13 +173,13 @@ class SessionManagerSettings(BaseSettings):
         DEFAULT_SECURE (bool): Whether the cookie should only be sent over HTTPS.
     """
 
-    ALLOW_COOKIE_LOGIN: bool
-    DEFAULT_PATH: str
-    DEFAULT_STORE_IP_WITH_SESSION: bool
-    DEFAULT_MAX_NUMBER_OF_IPS: int
-    DEFAULT_DELETE_ON_LOGIN_ERROR: bool
-    DEFAULT_MAX_AGE_SECONDS: int
-    DEFAULT_SECURE: bool
+    ALLOW_COOKIE_LOGIN: bool = True
+    DEFAULT_PATH: str = "/"
+    DEFAULT_STORE_IP_WITH_SESSION: bool = True
+    DEFAULT_MAX_NUMBER_OF_IPS: int = 1
+    DEFAULT_DELETE_ON_LOGIN_ERROR: bool = True
+    DEFAULT_MAX_AGE_SECONDS: int = 86400
+    DEFAULT_SECURE: bool = True
 
 
 class AppConfig(BaseSettings):
