@@ -2,8 +2,11 @@
 main.py
 """
 import time
-from fastapi import APIRouter
+import json
 
+from typing import List
+from fastapi import APIRouter, Query, FastAPI, HTTPException
+from bson import ObjectId
 
 from api.api_v1.user import model
 from core.hashing import Hasher
@@ -34,13 +37,8 @@ def hash_password(password) -> str:
 app = APIRouter()
 
 
-@app.get("/hello")
-async def hello() -> str:
-    return "hello from users"
-
-
 @app.post("/register")
-def register_user(user_data: model.UserRegistration):
+async def register_user(user_data: model.UserRegistration):
     """
     ## Register a user. (V1)
 
@@ -65,16 +63,83 @@ def register_user(user_data: model.UserRegistration):
 
     user_data_dict["password"] = password_hashed
 
-    mongo_client = MongoDBClient()
+    try:
+        mongo_client = MongoDBClient()
 
-    # Insert the dictionary into the MongoDB collection
-    result = mongo_client.insert_document(
-        collection_name="Users",
-        document=user_data_dict,
-    )
+        # Insert the dictionary into the MongoDB collection
+        result = await mongo_client.insert_document(
+            collection_name="Users",
+            document=user_data_dict,
+        )
+        return result
 
-    if Hasher.verify_password(password=password, stored_hash=password_hashed):
-        return {
-            "message": "User registered successfully",
-            "DB": f"{result}",
+    finally:
+        await mongo_client.close()
+
+
+@app.get("/get_users_by_name", response_model=model.UserDataResponse)
+async def get_users_by_name(data: model.GetUsersByName):
+    """
+    # Get user data by usernames.
+
+    This endpoint takes a list of usernames and\
+        returns user data for each username.
+
+    Args:
+        data (model.GetUsersByName):\
+            Request data containing a list of usernames.
+
+    Returns:
+        dict: A dictionary with usernames as keys and user data as values.
+
+    ### Example Request:
+    ```json
+    {
+        "usernames": ["abc#1234", "abcasdasdc#1224"]
+    }
+    ```
+    ### Example Response:
+    ```json
+    {
+        "user_data": {
+            "abc#1234": {
+                "email": "user@example.com",
+                "username": "abc#1234",
+                "password": "$argon2id$..."
+            },
+            "abcasdasdc#1224": {
+                "email": "user2@example.com",
+                "username": "abcasdasdc#1224",
+                "password": "$argon2id$..."
+            }
         }
+    }
+    ```
+    """
+    usernames = data.usernames
+
+    try:
+        mongo_client = MongoDBClient()
+
+        response_data = {}  # Initialize an empty dictionary
+
+        for username in usernames:
+            search_dict = {"username": username}
+            user_data = await mongo_client.find_document_by_dict(
+                collection_name="Users", search=search_dict
+            )
+
+            if user_data:
+                # Convert the ObjectId to a string
+                user_data["_id"] = str(user_data["_id"])
+                response_data[username] = {**user_data, "username": username}
+            else:
+                response_data[username] = None  # User not found
+
+        return {"user_data": response_data}
+    finally:
+        await mongo_client.close()
+
+
+# @app.post("/token")
+# async def login_for_access_token():

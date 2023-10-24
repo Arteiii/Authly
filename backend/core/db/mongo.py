@@ -55,7 +55,7 @@ class MongoDBClient:
         except DuplicateKeyError:
             return None  # Handle duplicate key error as needed
 
-    async def find_documents(self, collection_name, filter=None):
+    async def find_document_by_dict(self, collection_name, search: dict):
         """
         Find documents in a MongoDB collection.
 
@@ -69,9 +69,12 @@ class MongoDBClient:
         Finds documents in the specified collection based on the filter\
             criteria and returns a list of matching documents.
         """
-        cursor = self.db[collection_name].find(filter)
-        documents = await cursor.to_list(None)
-        return documents
+        document = await self.db[collection_name].find_one(search)
+
+        if document:
+            return document
+
+        return {"message": f"{search}not found"}
 
     async def find_document_by_id(self, collection_name, document_id):
         """

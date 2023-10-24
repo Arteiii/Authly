@@ -1,10 +1,27 @@
 import base64
-import re
 
 from pydantic import BaseModel, EmailStr, constr, validator, Field
 
 from core.password_validation import validate_password_complexity
 from core.config import config
+from core.username_validation import validate_username
+from typing import Dict
+
+
+class UserDataResponse(BaseModel):
+    user_data: Dict[str, Dict[str, str]]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "user_data": {
+                    "abc#1234": {
+                        "email": "user@example.com",
+                        "username": "abc#1234",
+                    }
+                }
+            }
+        }
 
 
 class UserRegistration(BaseModel):
@@ -53,28 +70,14 @@ class UserRegistration(BaseModel):
 
     @validator("username")
     def validate_username(cls, value):
-        """
-        Validate the username format using a regular expression.
-
-        Args:
-            value (str): The username to validate.
-
-        Returns:
-            str: The validated username.
-
-        Raises:
-            ValueError: If the username format is invalid.
-        """
         # Define the regular expression pattern for the username
-        pattern = r"^[a-zA-Z]{3}#[0-9]{4}$"
-
-        if not re.match(pattern, value):
-            raise ValueError(
-                "Invalid username format. Username must consist of 3 letters,\
-                    a '#' character, and 4 numbers. (abc#1234)"
-            )
+        validate_username(value)
 
         return value
 
     def json(self, *args, **kwargs):
         return dict(self)
+
+
+class GetUsersByName(BaseModel):
+    usernames: list[str]

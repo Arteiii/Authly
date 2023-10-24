@@ -11,11 +11,6 @@ app = FastAPI()
 app.include_router(api_main_router, prefix=config.API.API_ROUTE)
 
 
-@app.get("/")
-async def root() -> str:
-    return "Hello World!"
-
-
 # debug/dev only
 if __name__ == "__main__":
     import uvicorn
