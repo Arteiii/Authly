@@ -1,8 +1,10 @@
 """
 MongoDBClient Module
 
-This module provides an asyncio-compatible MongoDB client for performing database operations
-such as insertion, retrieval, and updates. It is designed to work with a MongoDB database
+This module provides an asyncio-compatible\
+MongoDB client for performing database operations
+such as insertion, retrieval, and updates.
+It is designed to work with a MongoDB database\
 specified by the connection URL and database name.
 
 Author: Arteii
@@ -43,7 +45,8 @@ class MongoDBClient:
         Returns:
             str: The inserted document's _id.
 
-        Inserts a document into the specified collection and returns the _id of the inserted document.
+        Inserts a document into the specified collection and\
+            returns the _id of the inserted document.
         If a duplicate key error occurs, it returns None.
         """
         try:
@@ -63,7 +66,8 @@ class MongoDBClient:
         Returns:
             list: List of documents that match the filter.
 
-        Finds documents in the specified collection based on the filter criteria and returns a list of matching documents.
+        Finds documents in the specified collection based on the filter\
+            criteria and returns a list of matching documents.
         """
         cursor = self.db[collection_name].find(filter)
         documents = await cursor.to_list(None)
@@ -80,7 +84,8 @@ class MongoDBClient:
         Returns:
             dict: The found document or None if not found.
 
-        Finds a document in the specified collection by its _id and returns the document.
+        Finds a document in the specified collection by its _id and\
+            returns the document.
         If not found, it returns None.
         """
         document = await self.db[collection_name].find_one(
@@ -100,7 +105,8 @@ class MongoDBClient:
         Returns:
             int: The number of documents modified.
 
-        Updates a document in the specified collection by its _id with the provided update data.
+        Updates a document in the specified collection by its _id with\
+            the provided update data.
         Returns the number of documents modified.
         """
         result = await self.db[collection_name].update_one(

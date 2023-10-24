@@ -3,6 +3,9 @@ import argon2
 
 from core.config import config
 
+argon_config = config.PasswordConfig.ArgonHashingAlgorithm
+bcrypt_config = config.PasswordConfig.BcryptHashingAlgorithm
+
 
 class Bcrypt:
     """
@@ -22,9 +25,7 @@ class Bcrypt:
             bool: True if the password is valid, False otherwise.
         """
         return bcrypt.checkpw(
-            password.encode(
-                config.PasswordConfig.BcryptHashingAlgorithm.ENCODING
-            ),
+            password.encode(bcrypt_config.ENCODING),
             stored_hash,
         )
 
@@ -39,13 +40,9 @@ class Bcrypt:
         Returns:
             bytes: The Bcrypt hash of the password.
         """
-        salt = bcrypt.gensalt(
-            rounds=config.PasswordConfig.BcryptHashingAlgorithm.ROUNDS
-        )
+        salt = bcrypt.gensalt(rounds=bcrypt_config.ROUNDS)
         hashed_password = bcrypt.hashpw(
-            password.encode(
-                config.PasswordConfig.BcryptHashingAlgorithm.ENCODING
-            ),
+            password.encode(bcrypt_config.ENCODING),
             salt,
         )
         return hashed_password
@@ -70,12 +67,12 @@ class Argon:
         """
         try:
             hasher = argon2.PasswordHasher(
-                time_cost=config.PasswordConfig.ArgonHashingAlgorithm.TIME_COST,
-                memory_cost=config.PasswordConfig.ArgonHashingAlgorithm.MEMORY_COST,
-                parallelism=config.PasswordConfig.ArgonHashingAlgorithm.PARALLELISM,
-                hash_len=config.PasswordConfig.ArgonHashingAlgorithm.HASH_LEN,
-                salt_len=config.PasswordConfig.ArgonHashingAlgorithm.SALT_LEN,
-                encoding=config.PasswordConfig.ArgonHashingAlgorithm.ENCODING,
+                time_cost=argon_config.TIME_COST,
+                memory_cost=argon_config.MEMORY_COST,
+                parallelism=argon_config.PARALLELISM,
+                hash_len=argon_config.HASH_LEN,
+                salt_len=argon_config.SALT_LEN,
+                encoding=argon_config.ENCODING,
             )
             return hasher.verify(stored_hash, password)
         except argon2.exceptions.VerifyMismatchError:
@@ -93,19 +90,20 @@ class Argon:
             str: The Argon2 hash of the password.
         """
         hasher = argon2.PasswordHasher(
-            time_cost=config.PasswordConfig.ArgonHashingAlgorithm.TIME_COST,
-            memory_cost=config.PasswordConfig.ArgonHashingAlgorithm.MEMORY_COST,
-            parallelism=config.PasswordConfig.ArgonHashingAlgorithm.PARALLELISM,
-            hash_len=config.PasswordConfig.ArgonHashingAlgorithm.HASH_LEN,
-            salt_len=config.PasswordConfig.ArgonHashingAlgorithm.SALT_LEN,
-            encoding=config.PasswordConfig.ArgonHashingAlgorithm.ENCODING,
+            time_cost=config.argon_config.TIME_COST,
+            memory_cost=config.argon_config.MEMORY_COST,
+            parallelism=config.argon_config.PARALLELISM,
+            hash_len=config.argon_config.HASH_LEN,
+            salt_len=config.argon_config.SALT_LEN,
+            encoding=config.argon_config.ENCODING,
         )
         return hasher.hash(password)
 
 
 class Hasher:
     """
-    A class for handling password hashing and verification using various algorithms.
+    A class for handling password hashing and
+    verification using various algorithms.
     """
 
     @staticmethod
@@ -115,12 +113,14 @@ class Hasher:
         algorithm=config.PasswordConfig.HASHING_ALGORITHM,
     ):
         """
-        Verify a password against a stored hash using the specified hashing algorithm.
+        Verify a password against a stored hash\
+            using the specified hashing algorithm.
 
         Args:
             password (str): The password to be verified.
             stored_hash (str): The stored hash.
-            algorithm (str): The hashing algorithm to use (either "bcrypt" or "argon2").
+            algorithm (str): The hashing algorithm to use\
+                (either "bcrypt" or "argon2").
 
         Returns:
             bool: True if the password is valid, False otherwise.
@@ -142,7 +142,8 @@ class Hasher:
 
         Args:
             password (str): The password to be hashed.
-            algorithm (str): The hashing algorithm to use (either "bcrypt" or "argon2").
+            algorithm (str): The hashing algorithm to use\
+                (either "bcrypt" or "argon2").
 
         Returns:
             str: The hash of the password.
