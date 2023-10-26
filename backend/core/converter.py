@@ -1,5 +1,6 @@
 async def convert_duration_to_minutes(duration_str):
     """
+<<<<<<< HEAD
     Convert the input duration string to the corresponding\
         duration in minutes asynchronously.
 
@@ -16,6 +17,19 @@ async def convert_duration_to_minutes(duration_str):
     Raises:
         ValueError: If the input duration format is invalid or the duration\
             value is not a valid integer.
+=======
+    Convert the input duration string to the corresponding duration in minutes asynchronously.
+
+    Args:
+        duration_str (str): A string representing the duration in the format 'Xm', 'Xh', or 'Xd', where 'X' is an integer
+        value and 'm', 'h', and 'd' represent minutes, hours, and days, respectively.
+
+    Returns:
+        int: The total duration in minutes calculated from the input duration string.
+
+    Raises:
+        ValueError: If the input duration format is invalid or the duration value is not a valid integer.
+>>>>>>> apirouting
 
     Example Usage:
         Input: '60m'

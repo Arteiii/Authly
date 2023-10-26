@@ -50,6 +50,14 @@ async def delete_key(application=None, creator=None, key=None):
             db_name=config.MongodbSettings.MONGODB_NAME,
             collection_name="Keys",
         )
+<<<<<<< HEAD
+=======
+        db_status = {}
+
+        read_manager = mongo_manager.ReadManager(
+            collection=mongo_manager.collection
+        )
+>>>>>>> apirouting
 
         delete_manager = mongo_manager.DeleteManager(
             collection=mongo_manager.collection
