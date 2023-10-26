@@ -113,11 +113,11 @@ class ArgonHashingAlgorithm(BaseSettings):
             The character encoding used for hashing, e.g., 'utf-8'.
     """
 
-    TIME_COST: int = 3
-    MEMORY_COST: int = 128
+    TIME_COST: int = 12
+    MEMORY_COST: int = 256
     PARALLELISM: int = 4
-    SALT_LEN: int = 16
-    HASH_LEN: int = 32
+    SALT_LEN: int = 32
+    HASH_LEN: int = 64
     ENCODING: str = "utf-8"
 
 
@@ -207,6 +207,24 @@ class MongodbSettings(BaseSettings):
     MONGODB_SOCKET_TIMEOUT_MS: int = 30000
 
 
+class RedisdbSettings(BaseSettings):
+    """
+    Settings class for configuring the Redis database connection.
+
+    read more about redis:
+    https://redis.io/docs/
+
+    Attributes:
+        REDIS_HOST (str): The Redis host address. Default is "localhost".
+        REDIS_PORT (int): The Redis port number. Default is 6379.
+        REDIS_DB (int): The Redis database number or index. Default is 0.
+    """
+
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
+
+
 class SessionManagerSettings(BaseSettings):
     """
     Configuration settings for the session manager.
@@ -257,6 +275,7 @@ class AppConfig(BaseSettings):
     API: API
     PasswordConfig: PasswordConfig
     MongodbSettings: MongodbSettings
+    RedisdbSettings: RedisdbSettings
     SessionManagerSettings: SessionManagerSettings
 
 
@@ -269,7 +288,6 @@ parent_directory = os.path.abspath(os.path.join(script_directory, os.pardir))
 # Construct the relative path to the JSON file in the parent directory
 json_file_path = os.path.join(parent_directory, "config.json")
 
-print(json_file_path)
 
 # Load JSON file
 with open(
@@ -280,6 +298,3 @@ with open(
 
 # Parse JSON into Pydantic model
 config = AppConfig(**config_data)
-
-
-# Validate the configuration data

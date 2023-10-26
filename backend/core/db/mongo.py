@@ -1,141 +1,232 @@
 """
-MongoDBClient Module
+Module for managing asynchronous MongoDB operations.
 
-This module provides an asyncio-compatible\
-MongoDB client for performing database operations
-such as insertion, retrieval, and updates.
-It is designed to work with a MongoDB database\
-specified by the connection URL and database name.
+This module provides a MongoDBManager class that facilitates asynchronous\
+    operations for creating, reading, updating, and deleting data in a\
+        MongoDB database. It uses the motor library for asynchronous\
+                interaction with MongoDB.
 
-Author: Arteii
-Date: 24/10/2023
+Classes:
+- MongoDBManager: A class for managing asynchronous MongoDB operations\
+    including Write, read, update, and delete operations.
+
+Subclasses:
+- WriteManager: A class for handling asynchronous creation operations.
+- ReadManager: A class for handling asynchronous read operations.
+- UpdateManager: A class for handling asynchronous update operations.
+- DeleteManager: A class for handling asynchronous delete operations.
+
+operations are named after the crud operations documentation from mongo:
+https://www.mongodb.com/docs/manual/crud/
+
+Author: Arteii/wavy42
+Date: 25/10/2023
 """
 
 import motor.motor_asyncio
-from core.config import config
-from pymongo.errors import DuplicateKeyError
+import asyncio
 
 
-class MongoDBClient:
+class MongoDBManager:
     def __init__(
         self,
-        mongodb_url=config.MongodbSettings.MONGODB_URL,
-        db_name=config.MongodbSettings.MONGODB_NAME,
+        db_url,
+        db_name,
+        collection_name,
     ):
         """
-        Initialize the MongoDB client.
+        Initialize the MongoDBManager class.
 
         Args:
-            mongodb_url (str): The MongoDB connection URL.
-            db_name (str): The name of the database to use.
-
-        Initializes the MongoDB client and connects to the specified database.
+            db_url (str): The URL of the MongoDB database.
+            db_name (str): The name of the MongoDB database.
+            collection_name (str): The name of the MongoDB collection.
         """
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(mongodb_url)
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(db_url)
         self.db = self.client[db_name]
+        self.collection = self.db[collection_name]
+        self.update_manager = self.UpdateManager(self.collection)
+        self.write_manager = self.WriteManager(self.collection)
+        self.delete_manager = self.DeleteManager(self.collection)
+        self.read_manager = self.ReadManager(self.collection)
 
-    async def insert_document(self, collection_name, document):
-        """
-        Insert a document into a MongoDB collection.
+    #####################################
+    #               Write:             #
+    #####################################
 
-        Args:
-            collection_name (str): The name of the collection.
-            document (dict): The document to insert.
+    class WriteManager:
+        def __init__(self, collection):
+            self.collection = collection
 
-        Returns:
-            str: The inserted document's _id.
+        async def insert_document(self, data):
+            try:
+                await self.collection.insert_one(data)
+                print("Document inserted successfully.")
+                return "Document inserted successfully."
+            except Exception as e:
+                print(f"Error occurred while inserting document: {e}")
+                return f"Error occurred while inserting document: {e}"
 
-        Inserts a document into the specified collection and\
-            returns the _id of the inserted document.
-        If a duplicate key error occurs, it returns None.
-        """
+        async def insert_many_documents(self, data_list):
+            try:
+                await self.collection.insert_many(data_list)
+                print(f"Documents inserted successfully. ({data_list})")
+                return "Documents inserted successfully."
+            except Exception as e:
+                print(f"Error occurred while inserting documents: {e}")
+                return f"Error occurred while inserting documents: {e}"
+
+        async def bulk_write(self, requests):
+            try:
+                result = await self.collection.bulk_write(requests)
+                print(f"{result.inserted_count} documents inserted.")
+                print(f"{result.modified_count} documents updated.")
+                print(f"{result.deleted_count} documents deleted.")
+                return (
+                    result.inserted_count,
+                    result.modified_count,
+                    result.deleted_count,
+                )
+            except Exception as e:
+                print(f"Error occurred during bulk write operation: {e}")
+                return f"Error occurred during bulk write operation: {e}"
+
+    #####################################
+    #                Read:              #
+    #####################################
+
+    class ReadManager:
+        def __init__(self, collection):
+            self.collection = collection
+
+        async def find_one(self, query):
+            try:
+                result = await self.collection.find_one(query)
+                if result:
+                    print("Document found:", result)
+                    return result
+                else:
+                    print("No document found with the given query.")
+                    return "No document found with the given query."
+            except Exception as e:
+                print(f"Error occurred during find_one operation: {e}")
+                return f"Error occurred during find_one operation: {e}"
+
+        async def find_many(self, query):
+            try:
+                result_list = []
+                async for doc in self.collection.find(query):
+                    result_list.append(doc)
+                    print(doc)
+                return result_list
+            except Exception as e:
+                print(f"Error occurred during find_many operation: {e}")
+                return f"Error occurred during find_many operation: {e}"
+
+    #####################################
+    #               Update:             #
+    #####################################
+
+    class UpdateManager:
+        def __init__(self, collection):
+            self.collection = collection
+
+        async def update_one_document(self, query, update_data):
+            try:
+                result = await self.collection.update_one(
+                    query, {"$set": update_data}
+                )
+                if result.modified_count > 0:
+                    print("Document updated successfully.")
+                    return "Document updated successfully."
+                else:
+                    print("No document found with the given query.")
+                    return "No document found with the given query."
+            except Exception as e:
+                print(f"Error occurred during update_one operation: {e}")
+                return f"Error occurred during update_one operation: {e}"
+
+        async def update_many_documents(self, query, update_data):
+            try:
+                result = await self.collection.update_many(
+                    query, {"$set": update_data}
+                )
+                if result.modified_count > 0:
+                    print("Documents updated successfully.")
+                    return "Documents updated successfully."
+                else:
+                    print("No document found with the given query.")
+                    return "No document found with the given query."
+            except Exception as e:
+                print(f"Error occurred during update_many operation: {e}")
+                return f"Error occurred during update_many operation: {e}"
+
+        async def replace_one_document(self, query, replace_data):
+            try:
+                result = await self.collection.replace_one(query, replace_data)
+                if result.modified_count > 0:
+                    print("Document replaced successfully.")
+                    return "Document replaced successfully."
+                else:
+                    print("No document found with the given query.")
+                    return "No document found with the given query."
+            except Exception as e:
+                print(f"Error occurred during replace_one operation: {e}")
+                return f"Error occurred during replace_one operation: {e}"
+
+    #####################################
+    #               Delete:             #
+    #####################################
+    class DeleteManager:
+        def __init__(self, collection):
+            self.collection = collection
+
+        async def delete_document(self, query):
+            try:
+                result = await self.collection.delete_one(query)
+                if result.deleted_count > 0:
+                    print("Document deleted successfully.")
+                    return "Document deleted successfully."
+                else:
+                    print("No document found with the given query.")
+                    return "No document found with the given query."
+            except Exception as e:
+                print(f"Error occurred during delete_document operation: {e}")
+                return f"Error occurred during delete_document operation: {e}"
+
+        async def delete_many_documents(self, query):
+            try:
+                result = await self.collection.delete_many(query)
+                if result.deleted_count > 0:
+                    print("Documents deleted successfully.")
+                    return "Documents deleted successfully."
+                else:
+                    print("No documents found with the given query.")
+                    return "No documents found with the given query."
+            except Exception as e:
+                print(f"Error occurred during delete_many operation: {e}")
+                return f"Error occurred during delete_many operation: {e}"
+
+    async def close_connection(self):
         try:
-            result = await self.db[collection_name].insert_one(document)
-            return result.inserted_id
-        except DuplicateKeyError:
-            return None  # Handle duplicate key error as needed
+            self.client.close()
+            return "Connection closed."
+        except Exception as e:
+            return f"Error occurred during connection closing: {e}"
 
-    async def find_document_by_dict(self, collection_name, search: dict):
-        """
-        Find documents in a MongoDB collection.
 
-        Args:
-            collection_name (str): The name of the collection.
-            filter (dict): The filter criteria.
+async def example_usage():
+    db_url = "mongodb://localhost:27017/"
+    db_name = "test_database"
+    collection_name = "test_collection"
 
-        Returns:
-            list: List of documents that match the filter.
+    manager = MongoDBManager(db_url, db_name, collection_name)
 
-        Finds documents in the specified collection based on the filter\
-            criteria and returns a list of matching documents.
-        """
-        document = await self.db[collection_name].find_one(search)
+    query = {"age": {"$gt": 25}}
 
-        if document:
-            return document
+    manager.read_manager.find_many(query)
 
-        return {"message": f"{search}not found"}
 
-    async def find_document_by_id(self, collection_name, document_id):
-        """
-        Find a document in a MongoDB collection by _id.
-
-        Args:
-            collection_name (str): The name of the collection.
-            document_id (str): The _id of the document to find.
-
-        Returns:
-            dict: The found document or None if not found.
-
-        Finds a document in the specified collection by its _id and\
-            returns the document.
-        If not found, it returns None.
-        """
-        document = await self.db[collection_name].find_one({"_id": document_id})
-        return document
-
-    async def update_document(self, collection_name, document_id, update_data):
-        """
-        Update a document in a MongoDB collection.
-
-        Args:
-            collection_name (str): The name of the collection.
-            document_id (str): The _id of the document to update.
-            update_data (dict): The data to update.
-
-        Returns:
-            int: The number of documents modified.
-
-        Updates a document in the specified collection by its _id with\
-            the provided update data.
-        Returns the number of documents modified.
-        """
-        result = await self.db[collection_name].update_one(
-            {"_id": document_id}, {"$set": update_data}
-        )
-        return result.modified_count
-
-    async def delete_document(self, collection_name, document_id):
-        """
-        Delete a document from a MongoDB collection.
-
-        Args:
-            collection_name (str): The name of the collection.
-            document_id (str): The _id of the document to delete.
-
-        Returns:
-            int: The number of documents deleted.
-
-        Deletes a document from the specified collection by its _id.
-        Returns the number of documents deleted.
-        """
-        result = await self.db[collection_name].delete_one({"_id": document_id})
-        return result.deleted_count
-
-    async def close(self):
-        """
-        Close the MongoDB client.
-
-        Closes the MongoDB client and its connections.
-        """
-        self.client.close()
+# Running the asyncio event loop
+if __name__ == "__main__":
+    asyncio.run(example_usage())

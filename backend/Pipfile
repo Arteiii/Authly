@@ -10,6 +10,8 @@ bcrypt = "*"
 motor = "*"
 pydantic = "*"
 fastapi = {extras = ["all"], version = "*"}
+aioredis = "*"
+exrex = "*"
 
 [dev-packages]
 uvicorn = {extras = ["standard"], version = "*"}

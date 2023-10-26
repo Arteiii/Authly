@@ -4,12 +4,32 @@ main.py
 import time
 
 from api.api_v1.user import model
+from api.api_v1.security.logging import EventLogger
 from core.config import config
-from core.db.mongo import MongoDBClient
+from core.db.mongo import MongoDBManager
 from core.hashing import Hasher
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+
 
 # utils
+
+
+def login_log_reponse(data) -> dict:
+    return {
+        "id": str(data["_id"]),
+        "ip_address": data["ip_address"],
+        "password": data["password"],
+        "username": data["username"],
+        "event_type": data["event_type"],
+        "status": data["status"],
+        "session_duration_minutes": data["session_duration_minutes"],
+        "additional_info": data["additional_info"],
+        "url": data["url"],
+        "method": data["method"],
+        "headers": data["headers"],
+        "body": data["body"],
+        "timestamp": data["timestamp"],
+    }
 
 
 def hash_password(password) -> str:
@@ -29,10 +49,11 @@ def hash_password(password) -> str:
     return hashed
 
 
+Mongo_URL = config.MongodbSettings.MONGODB_URL
 app = APIRouter()
 
 
-@app.post("/register")
+@app.post("/")
 async def register_user(user_data: model.UserRegistration):
     """
     ## Register a user. (V1)
@@ -52,30 +73,32 @@ async def register_user(user_data: model.UserRegistration):
     password = user_data.password
 
     # Convert the Pydantic model to a dictionary using dict()
-    user_data_dict = dict(user_data)
+    user_data_dict = user_data.dict()
 
     password_hashed = hash_password(password=password)
 
     user_data_dict["password"] = password_hashed
 
     try:
-        mongo_client = MongoDBClient()
+        mongo_client = MongoDBManager(
+            db_url=Mongo_URL, db_name="mydb", collection_name="Users"
+        )
 
         # Insert the dictionary into the MongoDB collection
-        result = await mongo_client.insert_document(
-            collection_name="Users",
-            document=user_data_dict,
+        result = await mongo_client.write_manager.insert_document(
+            data=user_data_dict
         )
+
         return result
 
     finally:
-        await mongo_client.close()
+        await mongo_client.close_connection()
 
 
-@app.get("/get_users_by_name", response_model=model.UserDataResponse)
-async def get_users_by_name(data: model.GetUsersByName):
+@app.get("/", response_model=model.UserDataResponse)
+async def get_users_by_usernam(data: model.GetUsersByName):
     """
-    # Get user data by usernames.
+    # Search for users by usernames. (V1)
 
     This endpoint takes a list of usernames and\
         returns user data for each username.
@@ -114,14 +137,19 @@ async def get_users_by_name(data: model.GetUsersByName):
     usernames = data.usernames
 
     try:
-        mongo_client = MongoDBClient()
+        mongo_client = MongoDBManager(
+            collection_name="Users",
+            db_name="mydb",
+            db_url=Mongo_URL,
+        )
 
         response_data = {}  # Initialize an empty dictionary
 
         for username in usernames:
-            search_dict = {"username": username}
-            user_data = await mongo_client.find_document_by_dict(
-                collection_name="Users", search=search_dict
+            search_dict = {"username": f"{username}"}
+            print(search_dict)
+            user_data = await mongo_client.read_manager.find_one(
+                query=search_dict
             )
 
             if user_data:
@@ -133,8 +161,53 @@ async def get_users_by_name(data: model.GetUsersByName):
 
         return {"user_data": response_data}
     finally:
-        await mongo_client.close()
+        await mongo_client.close_connection()
 
 
-# @app.post("/token")
-# async def login_for_access_token():
+@app.post("/token")
+async def login_for_access_token(
+    request: Request, credentials: model.GetToken
+):
+    ip_address = request.client.host
+    # user_agent = request.headers["user-agent"]
+    url = request.url.path
+    method = request.method
+    headers = dict(request.headers)
+    body = await request.body()
+    event_type = "login_attempt"
+    status = "failed"
+    password = credentials.password
+    username = credentials.username
+
+    log_manager = EventLogger(
+        db_name="logs", collection_name="log.login", db_url=Mongo_URL
+    )
+
+    result = await log_manager.log_login(
+        ip_address=ip_address,
+        password=password,
+        username=username,
+        event_type=event_type,
+        status=status,
+        # user_agent=user_agent,
+        additional_info=None,
+        url=url,
+        session_duration_minutes=12,
+        method=method,
+        headers=headers,
+        body=body,
+    )
+    if result:
+        return result
+    return "some error occured"
+
+
+@app.get("/login_log")
+async def get_log(data: model.GetLog) -> dict:
+    log_manager = EventLogger(
+        db_url=Mongo_URL, collection_name="log.login", db_name="logs"
+    )
+    username = {"username": data.username}
+    results = await log_manager.get_log(username)
+    reponse = login_log_reponse(results)
+    return reponse
