@@ -49,6 +49,11 @@
     "MONGODB_CONNECT_TIMEOUT_MS": 20000,
     "MONGODB_SOCKET_TIMEOUT_MS": 30000
   },
+  "RedisdbSettings": {
+    "REDIS_HOST": "localhost",
+    "REDIS_PORT": 6379,
+    "REDIS_DB": 0
+  },
   "SessionManagerSettings": {
     "ALLOW_COOKIE_LOGIN": true,
     "DEFAULT_PATH": "/",

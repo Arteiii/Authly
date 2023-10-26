@@ -9,3 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: psf/black@stable
+        with:
+          options: "--check --verbose --line-length 79"
+          src: "./backend"
+          version: "~= 22.0"

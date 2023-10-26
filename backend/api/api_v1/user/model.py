@@ -1,5 +1,5 @@
 import base64
-from typing import Dict
+from typing import Dict, Optional
 
 from core.config import config
 from core.password_validation import validate_password_complexity
@@ -11,7 +11,7 @@ class UserDataResponse(BaseModel):
     user_data: Dict[str, Dict[str, str]]
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "user_data": {
                     "abc#1234": {
@@ -28,7 +28,7 @@ class UserRegistration(BaseModel):
     Represents user registration data, including email, username, and password.
     """
 
-    email: EmailStr = Field(..., example="1337Allah@haxxor.com")
+    email: EmailStr = Field(..., example="1337@Allah.com")
     username: str = Field(..., example="abc#1234")
     password: constr(
         min_length=config.PasswordConfig.DEFAULT_PASSWORD_MIN_LENGTH,
@@ -80,3 +80,12 @@ class UserRegistration(BaseModel):
 
 class GetUsersByName(BaseModel):
     usernames: list[str]
+
+
+class GetLog(BaseModel):
+    username: Optional[str]
+
+
+class GetToken(BaseModel):
+    username: str
+    password: str
