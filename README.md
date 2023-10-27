@@ -22,6 +22,7 @@ TODO:
 - [ ] refactor some apiv1 stuff
 - [ ] add cookie based login (redis)
 - [ ] key add checks for already exist (auto add random num?)
+- [ ] base64 for all spezial chars options
 
 ## 💼 Commercial Use
 

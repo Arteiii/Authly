@@ -1,7 +1,5 @@
 from core.db.mongo import MongoDBManager
 import datetime
-import json
-from bson import ObjectId
 
 
 class EventLogger:

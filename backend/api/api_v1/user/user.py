@@ -3,15 +3,46 @@ main.py
 """
 import time
 
+from typing import Annotated, Union
+
+from fastapi import APIRouter, Request, Depends
+from fastapi.security import OAuth2PasswordBearer
+from pydantic import BaseModel
+
+
 from api.api_v1.user import model
 from api.api_v1.security.logging import EventLogger
 from core.config import config
 from core.db.mongo import MongoDBManager
 from core.hashing import Hasher
-from fastapi import APIRouter, Request
+
+
+app = APIRouter()
+Mongo_URL = config.MongodbSettings.MONGODB_URL
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 # utils
+
+
+class User(BaseModel):
+    username: str
+    email: Union[str, None] = None
+    full_name: Union[str, None] = None
+    disabled: Union[bool, None] = None
+
+
+def fake_decode_token(token):
+    return User(
+        username=token + "fakedecoded",
+        email="john@example.com",
+        full_name="John Doe",
+    )
+
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    user = fake_decode_token(token)
+    return user
 
 
 def login_log_reponse(data) -> dict:
@@ -32,13 +63,13 @@ def login_log_reponse(data) -> dict:
     }
 
 
-def hash_password(password) -> str:
+async def hash_password(password) -> str:
     if config.Debug.DebugHashingTime is True:
         print(password)
         print(f"using: {config.PasswordConfig.HASHING_ALGORITHM}")
         start_time = time.time()  # Record the start time
 
-    hashed = Hasher.get_password_hash(password=password)
+    hashed = await Hasher.get_password_hash(password=password)
 
     end_time = time.time()  # Record the end time
 
@@ -47,10 +78,6 @@ def hash_password(password) -> str:
         print("Hashing Time:", end_time - start_time, "seconds")
 
     return hashed
-
-
-Mongo_URL = config.MongodbSettings.MONGODB_URL
-app = APIRouter()
 
 
 @app.post("/")
@@ -75,7 +102,7 @@ async def register_user(user_data: model.UserRegistration):
     # Convert the Pydantic model to a dictionary using dict()
     user_data_dict = user_data.dict()
 
-    password_hashed = hash_password(password=password)
+    password_hashed = await hash_password(password=password)
 
     user_data_dict["password"] = password_hashed
 
@@ -211,3 +238,15 @@ async def get_log(data: model.GetLog) -> dict:
     results = await log_manager.get_log(username)
     reponse = login_log_reponse(results)
     return reponse
+
+
+@app.get("/login")
+async def login_with_token(token: Annotated[str, Depends(oauth2_scheme)]):
+    return {"token": token}
+
+
+@app.get("/me")
+async def read_users_me(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
+    return current_user

@@ -43,41 +43,56 @@ async def generate_new_key(
         await mongo_manager.close_connection()
 
 
-async def delete_key(application=None, creator=None, key=None):
+async def delete_key(
+    keys: list = None, creators: list = None, applications: list = None
+):
     try:
+        if not any([keys, creators, applications]):
+            raise ValueError(
+                "Please provide keys, creators, or application IDs."
+            )
+
         mongo_manager = MongoDBManager(
             db_url=config.MongodbSettings.MONGODB_URL,
             db_name=config.MongodbSettings.MONGODB_NAME,
             collection_name="Keys",
         )
-<<<<<<< HEAD
-=======
-        db_status = {}
-
-        read_manager = mongo_manager.ReadManager(
-            collection=mongo_manager.collection
-        )
->>>>>>> apirouting
 
         delete_manager = mongo_manager.DeleteManager(
             collection=mongo_manager.collection
         )
 
-        delete_query = {}
-        if application:
-            delete_query = {"application_id": application}
-        elif creator:
-            delete_query = {"creator": creator}
-        elif key:
-            delete_query = {"key_value": key}
+        results = {}
+        if keys:
+            for key in keys:
+                delete_query = {"key_value": key}
+                delete_key = await delete_manager.delete_many_documents(
+                    query=delete_query
+                )
+                results[key] = delete_key
 
-        elif not any([application, creator, key]):
-            raise ValueError(
-                "Please provide either application, creator, or key."
-            )
-        result = await delete_manager.delete_many_documents(query=delete_query)
+        if creators:
+            for creator in creators:
+                delete_query = {"creator": creator}
+                delete_creator = await delete_manager.delete_many_documents(
+                    query=delete_query
+                )
+                results[creator] = delete_creator
 
-        return result
+        if applications:
+            for app_id in applications:
+                delete_query = {"application_id": app_id}
+                delete_result = await delete_manager.delete_many_documents(
+                    query=delete_query
+                )
+                results[app_id] = delete_result
+
+        print(results)
+        return results  # Assuming successful deletion
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False
 
     finally:
         await mongo_manager.close_connection()

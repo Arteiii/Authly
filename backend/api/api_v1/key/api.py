@@ -3,21 +3,16 @@ main.py
 """
 
 from fastapi import APIRouter
-from pydantic import BaseModel
-from typing import List
+
 
 from api.api_v1.key.managment import generate_new_key, delete_key
 from core.converter import convert_duration_to_minutes
-
+from api.api_v1.key import model
 
 app = APIRouter()
 
 
-class KeysResponse(BaseModel):
-    keys: List[str]
-
-
-@app.get("/{application_id}/{duration}")
+@app.post("/{application_id}/{duration}")
 async def generate_key_with_options(
     application_id: str,
     duration: str,
@@ -80,10 +75,14 @@ async def generate_key_with_options(
         duration=time_in_m,
         application_id=application_id,
     )
-    response = KeysResponse(keys=new_keys)
+    response = model.KeysResponse(keys=new_keys)
     return response
 
 
-@app.delete("/delete")
-async def delete_keys(application_id: str):
-    return await delete_key(application=application_id)
+@app.delete("/")
+async def delete_keys(data: model.Delete):
+    return await delete_key(
+        applications=data.application_ids,
+        creators=data.creator_names,
+        keys=data.key_list,
+    )
