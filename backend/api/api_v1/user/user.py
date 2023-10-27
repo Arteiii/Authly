@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 
 from api.api_v1.user import model
-from api.api_v1.security.logging import EventLogger
+from api.api_v1.authentication.logging import EventLogger
 from core.config import config
 from core.db.mongo import MongoDBManager
 from core.hashing import Hasher
@@ -65,7 +65,6 @@ def login_log_reponse(data) -> dict:
 
 async def hash_password(password) -> str:
     if config.Debug.DebugHashingTime is True:
-        print(password)
         print(f"using: {config.PasswordConfig.HASHING_ALGORITHM}")
         start_time = time.time()  # Record the start time
 
@@ -74,7 +73,6 @@ async def hash_password(password) -> str:
     end_time = time.time()  # Record the end time
 
     if config.Debug.DebugHashingTime is True:
-        print("Hashed Password:", hashed)
         print("Hashing Time:", end_time - start_time, "seconds")
 
     return hashed
