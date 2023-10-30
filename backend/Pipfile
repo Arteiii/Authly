@@ -13,6 +13,7 @@ fastapi = {extras = ["all"], version = "*"}
 aioredis = "*"
 exrex = "*"
 fastapi-limiter = "*"
+colorama = "*"
 
 [dev-packages]
 uvicorn = {extras = ["standard"], version = "*"}

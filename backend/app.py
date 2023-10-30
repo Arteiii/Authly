@@ -1,12 +1,13 @@
 from api.api_router import api_main_router
 from core.config import config
+from core.log import Logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
-Debug = False
+Debug = True
 
 origins = [
     "*"
@@ -15,11 +16,10 @@ origins = [
 
 app = FastAPI()
 
-
 if Debug is True:
-    print("Security Middleware Disabled for debugging")
+    Logger.info("Security Middleware Disabled for debugging")
 else:
-    print("Security Middleware Active!!")
+    Logger.info("Security Middleware Active!!")
     # Handles Cross-Origin Resource Sharing (CORS) settings
     app.add_middleware(
         CORSMiddleware,
@@ -41,9 +41,9 @@ else:
         TrustedHostMiddleware, allowed_hosts=["*"]
     )  # Replace "*" with your trusted hosts
 
-
-# Include the API router
+    # Include the API router
 app.include_router(api_main_router, prefix=config.API.API_ROUTE)
+
 
 # Debug/development mode only
 if __name__ == "__main__":
