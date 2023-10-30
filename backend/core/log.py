@@ -1,3 +1,5 @@
+import sys
+
 from colorama import init, Fore
 
 init(autoreset=True)  # Initialize colorama
@@ -19,6 +21,7 @@ class Logger:
     @staticmethod
     def critical(msg: str = "Critical Log Message"):
         print(f"{Fore.MAGENTA}[CRITICAL] {msg}{Fore.RESET}")
+        sys.exit(1)
 
     @staticmethod
     def debug(msg: str = "Debug Log Message"):
