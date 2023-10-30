@@ -78,6 +78,13 @@ class UserRegistration(BaseModel):
         return dict(self)
 
 
+class UserResult(BaseModel):
+    mongo_results: str
+    user_id: int
+    username: str
+    email: EmailStr
+
+
 class GetUsersByName(BaseModel):
     usernames: list[str]
 

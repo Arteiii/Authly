@@ -4,8 +4,7 @@ main.py
 import time
 
 from typing import Annotated, Union
-
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
@@ -14,11 +13,15 @@ from api.api_v1.user import model
 from core.config import config
 from core.db.mongo import MongoDBManager
 from core.hashing import Hasher
+from api.api_v1.user.managment import UserManagment
+from core.log import Logger
+from api.api_v1.user.model import UserRegistration, UserResult
 
 
 app = APIRouter()
 Mongo_URL = config.MongodbSettings.MONGODB_URL
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 # utils
 
@@ -62,62 +65,45 @@ def login_log_reponse(data) -> dict:
 
 
 async def hash_password(password) -> str:
-    if config.Debug.DebugHashingTime is True:
-        print(password)
-        print(f"using: {config.PasswordConfig.HASHING_ALGORITHM}")
-        start_time = time.time()  # Record the start time
+    Logger.debug(f"using: {config.PasswordConfig.HASHING_ALGORITHM}")
+    start_time = time.time()  # Record the start time
 
-    hashed = await Hasher.get_password_hash(password=password)
+    hashed = Hasher.get_password_hash(password=password)
 
     end_time = time.time()  # Record the end time
 
-    if config.Debug.DebugHashingTime is True:
-        print("Hashed Password:", hashed)
-        print("Hashing Time:", end_time - start_time, "seconds")
+    Logger.debug(f"Hashed Password: {hashed}")
+    Logger.debug(f"Hashing Time: {end_time - start_time} seconds")
 
     return hashed
 
 
 @app.post("/")
-async def register_user(user_data: model.UserRegistration):
+async def register_user(user_data: UserRegistration) -> UserResult:
     """
     ## Register a user. (V1)
 
-
-    :param email: user email
-
-    :param username: The user's username. Username must consist of 3 letters,\
-        a '#' character, and 4 numbers. (abc#1234)
-
-    :param password: The user's password in Base64\
-        must be at least 8 characters long and contain at\
-            least one uppercase letter, one lowercase letter,\
-                one digit, and one special character (e.g., @$!%*?&).
+    :param user_data: Data required for user registration.
     """
-
-    password = user_data.password
-
-    # Convert the Pydantic model to a dictionary using dict()
-    user_data_dict = user_data.dict()
-
-    password_hashed = await hash_password(password=password)
-
-    user_data_dict["password"] = password_hashed
-
     try:
-        mongo_client = MongoDBManager(
-            db_url=Mongo_URL, db_name="mydb", collection_name="Users"
+        user_manager = UserManagment()
+
+        hashed_password = await hash_password(password=user_data.password)
+        results = await user_manager.create_user(
+            username=user_data.username,
+            email=user_data.email,
+            role="User",
+            password=hashed_password,
         )
+        Logger.debug(results)
+        return results
 
-        # Insert the dictionary into the MongoDB collection
-        result = await mongo_client.write_manager.insert_document(
-            data=user_data_dict
-        )
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=f"Bad Request: {ve}")
 
-        return result
-
-    finally:
-        await mongo_client.close_connection()
+    except Exception as e:
+        Logger.error(f"Exception while creating user ({e})")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @app.get("/", response_model=model.UserDataResponse)
