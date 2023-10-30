@@ -12,6 +12,7 @@ pydantic = "*"
 fastapi = {extras = ["all"], version = "*"}
 aioredis = "*"
 exrex = "*"
+fastapi-limiter = "*"
 
 [dev-packages]
 uvicorn = {extras = ["standard"], version = "*"}

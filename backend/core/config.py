@@ -21,8 +21,26 @@ class HashingAlgorithmTypes(str, Enum):
 ############################################################
 
 
+class LoggingSettings(BaseSettings):
+    """
+    Configuration settings for logging.
+
+    Attributes:
+        LOG_LEVEL (str): The log level for the application.\
+            Default is "INFO".
+            Possible values include "DEBUG", "INFO",\
+                "WARNING", "ERROR", and "CRITICAL".
+        LOG_FILE_PATH (str): The file path for the log file.\
+            Default is "app.log".
+            The log file will be created at the specified path.
+    """
+
+    LOG_LEVEL: str = "INFO"
+    LOG_FILE_PATH: str = "app.log"
+
+
 class Debug(BaseSettings):
-    DebugHashingTime: bool = False
+    LoggingSettings: LoggingSettings
 
 
 class API_V1(BaseSettings):

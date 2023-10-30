@@ -2,6 +2,8 @@ import random
 import string
 from core.db.redis import AsyncRedisManager
 from core.config import config
+from fastapi.logger import logger as fastapi_logger
+
 
 # import asyncio
 
@@ -66,8 +68,7 @@ async def main(
 
     if token:
         uid = get_user_id(redis_manager, token)
-        print("uid:\n")
-        print(uid)
+        fastapi_logger.info(f"TOKEN: {token}\n \\__ UID: {uid}")
         return uid
 
     existing_token = await check_access_token_exists(redis_manager, user_id)

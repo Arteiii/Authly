@@ -11,7 +11,6 @@ from pydantic import BaseModel
 
 
 from api.api_v1.user import model
-from api.api_v1.security.logging import EventLogger
 from core.config import config
 from core.db.mongo import MongoDBManager
 from core.hashing import Hasher
@@ -20,7 +19,6 @@ from core.hashing import Hasher
 app = APIRouter()
 Mongo_URL = config.MongodbSettings.MONGODB_URL
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 
 # utils
 
@@ -123,7 +121,7 @@ async def register_user(user_data: model.UserRegistration):
 
 
 @app.get("/", response_model=model.UserDataResponse)
-async def get_users_by_usernam(data: model.GetUsersByName):
+async def get_users_by_username(data: model.GetUsersByName):
     """
     # Search for users by usernames. (V1)
 
@@ -195,49 +193,7 @@ async def get_users_by_usernam(data: model.GetUsersByName):
 async def login_for_access_token(
     request: Request, credentials: model.GetToken
 ):
-    ip_address = request.client.host
-    # user_agent = request.headers["user-agent"]
-    url = request.url.path
-    method = request.method
-    headers = dict(request.headers)
-    body = await request.body()
-    event_type = "login_attempt"
-    status = "failed"
-    password = credentials.password
-    username = credentials.username
-
-    log_manager = EventLogger(
-        db_name="logs", collection_name="log.login", db_url=Mongo_URL
-    )
-
-    result = await log_manager.log_login(
-        ip_address=ip_address,
-        password=password,
-        username=username,
-        event_type=event_type,
-        status=status,
-        # user_agent=user_agent,
-        additional_info=None,
-        url=url,
-        session_duration_minutes=12,
-        method=method,
-        headers=headers,
-        body=body,
-    )
-    if result:
-        return result
-    return "some error occured"
-
-
-@app.get("/login_log")
-async def get_log(data: model.GetLog) -> dict:
-    log_manager = EventLogger(
-        db_url=Mongo_URL, collection_name="log.login", db_name="logs"
-    )
-    username = {"username": data.username}
-    results = await log_manager.get_log(username)
-    reponse = login_log_reponse(results)
-    return reponse
+    return "token"
 
 
 @app.get("/login")

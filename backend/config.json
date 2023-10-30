@@ -1,6 +1,9 @@
 {
   "Debug": {
-    "DebugHashingTime": true
+    "LoggingSettings": {
+      "LOG_LEVEL": "DEBUG",
+      "LOG_FILE_PATH": "app.log"
+    }
   },
   "API": {
     "API_ROUTE": "/api",
