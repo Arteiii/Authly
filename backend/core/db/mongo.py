@@ -22,6 +22,7 @@ https://www.mongodb.com/docs/manual/crud/
 Author: Arteii/wavy42
 Date: 25/10/2023
 """
+from bson import ObjectId
 
 import motor.motor_asyncio
 import asyncio
@@ -61,9 +62,12 @@ class MongoDBManager:
 
         async def insert_document(self, data):
             try:
-                await self.collection.insert_one(data)
-                Logger.debug("Document inserted successfully.")
-                return True, "Document inserted successfully."
+                result = await self.collection.insert_one(data)
+                inserted_id = str(result.inserted_id)
+                Logger.debug(
+                    f"Document with ID {inserted_id} inserted successfully."
+                )
+                return True, inserted_id
             except Exception as e:
                 Logger.debug(f"Error occurred while inserting document: {e}")
                 return False, f"Error occurred while inserting document: {e}"

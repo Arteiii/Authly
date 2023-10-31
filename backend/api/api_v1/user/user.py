@@ -15,7 +15,6 @@ from core.db.mongo import MongoDBManager
 from core.hashing import Hasher
 from api.api_v1.user.managment import UserManagment
 from core.log import Logger
-from api.api_v1.user.model import UserRegistration, UserResult
 
 
 app = APIRouter()
@@ -79,7 +78,7 @@ async def hash_password(password) -> str:
 
 
 @app.post("/")
-async def register_user(user_data: UserRegistration) -> UserResult:
+async def register_user(user_data: model.UserRegistration) -> model.UserResult:
     """
     ## Register a user. (V1)
 
@@ -175,15 +174,9 @@ async def get_users_by_username(data: model.GetUsersByName):
         await mongo_client.close_connection()
 
 
-@app.post("/token")
-async def login_for_access_token(
-    request: Request, credentials: model.GetToken
-):
-    return "token"
-
-
 @app.get("/login")
-async def login_with_token(token: Annotated[str, Depends(oauth2_scheme)]):
+async def login_with_token(credentials: model.Login):
+    
     return {"token": token}
 
 
@@ -192,3 +185,24 @@ async def read_users_me(
     current_user: Annotated[User, Depends(get_current_user)]
 ):
     return current_user
+
+
+@app.patch("update_username")
+async def update_username(
+    data: model.UpdateUsername, token: Annotated[str, Depends(oauth2_scheme)]
+):
+    try:
+        user_manager = UserManagment()
+
+        results = await user_manager.update_username(
+            user_id=data.user_id,
+            new_username=data.username,
+        )
+        return results
+
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=f"Bad Request: {ve}")
+
+    except Exception as e:
+        Logger.error(f"Exception while creating user ({e})")
+        raise HTTPException(status_code=500, detail="Internal Server Error")

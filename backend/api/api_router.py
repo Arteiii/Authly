@@ -23,9 +23,8 @@ if (
     Logger.critical("Please fix API paths")
 
 if API_V1.API_V1_ACTIVE is True:
-    print(
-        f"api version 1 is available at:\n \\__\
-            https://example.com{API_ROUTE}{API_V1.API_V1_ROUTE}"
+    Logger.info(
+        f"api version 1 is available at: https://example.com{API_ROUTE}{API_V1.API_V1_ROUTE}"
     )
     api_main_router.include_router(api_v1, prefix=API_V1.API_V1_ROUTE)
 

@@ -18,6 +18,13 @@ app = FastAPI()
 
 if Debug is True:
     Logger.info("Security Middleware Disabled for debugging")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 else:
     Logger.info("Security Middleware Active!!")
     # Handles Cross-Origin Resource Sharing (CORS) settings
