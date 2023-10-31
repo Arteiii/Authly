@@ -18,11 +18,10 @@ We greatly value any potential contributions and support from the community. We 
 
 TODO:
 
-- [ ] rework mongodb crud (beanie maybe)
+- [x] rework mongodb crud (beanie maybe)
 - [ ] refactor some apiv1 stuff
 - [ ] add cookie based login (redis)
-- [ ] key add checks for already exist (auto add random num?)
-- [ ] base64 for all spezial chars options
+- [ ] username checks for dup (auto add random num?)
 
 ## 💼 Commercial Use
 
