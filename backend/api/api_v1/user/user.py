@@ -4,7 +4,7 @@ main.py
 import time
 
 from typing import Annotated, Union
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
@@ -106,7 +106,7 @@ async def register_user(user_data: model.UserRegistration) -> model.UserResult:
 
 
 @app.get("/", response_model=model.UserDataResponse)
-async def get_users_by_username(data: model.GetUsersByName):
+async def get_users_by_usernam(data: model.GetUsersByName):
     """
     # Search for users by usernames. (V1)
 
@@ -176,7 +176,6 @@ async def get_users_by_username(data: model.GetUsersByName):
 
 @app.get("/login")
 async def login_with_token(credentials: model.Login):
-    
     return {"token": token}
 
 
@@ -194,11 +193,16 @@ async def update_username(
     try:
         user_manager = UserManagment()
 
-        results = await user_manager.update_username(
+        bool, results = await user_manager.update_username(
             user_id=data.user_id,
             new_username=data.username,
         )
-        return results
+        if bool is True:
+            return "Finished"
+        else:
+            raise HTTPException(
+                status_code=500, detail="Internal Server Error"
+            )
 
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=f"Bad Request: {ve}")
