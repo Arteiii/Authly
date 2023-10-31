@@ -22,7 +22,6 @@ https://www.mongodb.com/docs/manual/crud/
 Author: Arteii/wavy42
 Date: 25/10/2023
 """
-from bson import ObjectId
 
 import motor.motor_asyncio
 import asyncio

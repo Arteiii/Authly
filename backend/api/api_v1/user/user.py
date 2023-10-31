@@ -174,9 +174,9 @@ async def get_users_by_usernam(data: model.GetUsersByName):
         await mongo_client.close_connection()
 
 
-@app.get("/login")
-async def login_with_token(credentials: model.Login):
-    return {"token": token}
+# @app.get("/login")
+# async def login_with_token(credentials: model.Login):
+#     return {"token": token}
 
 
 @app.get("/me")
