@@ -110,7 +110,10 @@ class UserManagment:
                 return False, "User not found."
         except Exception as e:
             Logger.debug(f"Error occurred while updating username: {e}")
-            return False, f"Error occurred while updating username: {e}"
+            return (
+                False,
+                "Error occurred while updating username. read more in logs",
+            )
 
     async def update_email(self, user_id: int, new_email):
         try:
