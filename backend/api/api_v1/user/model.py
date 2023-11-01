@@ -12,7 +12,10 @@ def encode_to_base64(value: str) -> str:
         encoded_password = base64.b64encode(value.encode()).decode()
         return encoded_password
     except Exception as e:
-        raise ValueError(f"Error occurred while encoding to Base64: {e}")
+        Logger.error(f"Invalid Base64-encoded password ({e})")
+        raise ValueError(
+            f"Error occurred while encoding to Base64: (more in logs)"
+        )
 
 
 def decode_base64(value: str) -> str:
@@ -22,7 +25,8 @@ def decode_base64(value: str) -> str:
         ).decode()
         return decoded_password
     except base64.binascii.Error as err:
-        raise ValueError("Invalid Base64-encoded password") from err
+        Logger.error(f"Invalid Base64-encoded password ({err})")
+        raise ValueError("Invalid Base64-encoded password: (more in logs)")
 
 
 def validate_base64_password(value: str) -> str:
