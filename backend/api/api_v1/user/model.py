@@ -1,6 +1,6 @@
 import base64
 from typing import Dict, Optional
-from backend.core.log import Logger
+from core.log import Logger
 
 from core.config import config
 from core.password_validation import validate_password_complexity
@@ -64,7 +64,6 @@ class UserRegistration(BaseModel):
     def json(self, *args, **kwargs):
         self.password = encode_to_base64(self.password)
         return dict(self)
-
 
 
 class Login(BaseModel):
