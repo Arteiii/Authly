@@ -4,15 +4,13 @@ main.py
 import time
 
 from typing import Annotated, Union
-from email_validator import EmailNotValidError
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr, ValidationError, validate_email
+from pydantic import BaseModel, EmailStr  # , ValidationError, validate_email
 
 from api.api_v1.authentication import token as token
 from api.api_v1.authentication import user_authorization as ua
 from api.api_v1.user import model
 from core.config import config
-from core.db.mongo import MongoDBManager
 from core.hashing import Hasher
 from api.api_v1.user.managment import UserManagment
 from core.log import Logger
@@ -21,19 +19,15 @@ from core.log import Logger
 app = APIRouter()
 Mongo_URL = config.MongodbSettings.MONGODB_URL
 
-# to get a string like this run:
-# openssl rand -hex 32
-# ef803e1df378a4a455844cfefb374da56f0e7c69de72c5190f67423b1edd4932
-
 
 class User(BaseModel):
+    id: str
     username: str
     email: Union[EmailStr, None] = None
     disabled: Union[bool, None] = None
 
 
 class UserInDB(User):
-    _id: str
     password: str
     role: Union[str, None] = None
     geo_location: Union[str, None] = None
@@ -74,7 +68,7 @@ async def hash_password(password) -> str:
 
 
 @app.post("/")
-async def register_user(user_data: model.UserRegistration) -> model.UserResult:
+async def register_user(user_data: model.UserRegistration):
     """
     ## Register a user. (V1)
 
@@ -90,14 +84,12 @@ async def register_user(user_data: model.UserRegistration) -> model.UserResult:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     try:
-        results = await user_manager.create_user(
+        result_bool, results = await user_manager.create_user(
             username=user_data.username,
             email=user_data.email,
             role="User",
             password=hashed_password,
         )
-        Logger.info(results)
-        return results
 
     except ValueError as ve:
         Logger.error(f"Bad Request: {ve}")
@@ -106,6 +98,14 @@ async def register_user(user_data: model.UserRegistration) -> model.UserResult:
     except Exception as e:
         Logger.error("Exception while creating user", f"{e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    finally:
+        if result_bool:
+            return results
+        elif not result_bool:
+            raise HTTPException(
+                status_code=422, detail="Email In use or Blacklisted"
+            )
 
 
 @app.delete("/")
@@ -129,27 +129,25 @@ async def delete_user(data: model.DeleteUser) -> model.DeleteUserResponse:
 async def login(form_data: Annotated[ua.OAuth2PasswordRequestForm, Depends()]):
     user_manager = UserManagment()
     bool, user_dict = await user_manager.get_user_data(
-        email=form_data.password
+        email=form_data.username
     )
-
     if not bool:
         raise HTTPException(
             status_code=400, detail="Incorrect email or password"
         )
 
     user = UserInDB(**user_dict)
-    Logger.debug("user.password:", f"{user.password}")
-    Logger.debug("user._id:", f"{user._id}")
     pw_verify = Hasher.verify_password(
-        password=form_data.password, hashed_password=user.password
+        password=form_data.password, stored_hash=user.password
     )
 
     if not pw_verify:
+        Logger.debug(f"hash compare failed with status: {pw_verify}")
         raise HTTPException(
             status_code=400, detail="Incorrect username or password"
         )
     else:
-        access_token = token.Token(user_id=user._id)
+        access_token = token.Token(user_id=user.id)
 
     return {"access_token": access_token, "token_type": "bearer"}
 

@@ -1,15 +1,14 @@
 from typing import Annotated, Union
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from bson import ObjectId
-from fastapi.security import OAuth2PasswordBearer
-
 from core.db.mongo import MongoDBManager
 from core.hashing import Hasher
 from core.config import config
 from core.log import Logger
+from api.api_v1.authentication import token as TokenManager
 
 # def check_if_allowed():
 #     return
@@ -25,9 +24,8 @@ class User(BaseModel):
     disabled: Union[bool, None] = None
 
 
-
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    user = fake_decode_token(token)
+    user = TokenManager.Token(token)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

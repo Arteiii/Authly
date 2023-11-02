@@ -16,6 +16,7 @@ fastapi-limiter = "*"
 colorama = "*"
 python-jose = {extras = ["cryptography"], version = "*"}
 python-multipart = "*"
+redis = {extras = ["hiredis"], version = "*"}
 
 [dev-packages]
 uvicorn = {extras = ["standard"], version = "*"}

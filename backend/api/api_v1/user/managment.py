@@ -50,6 +50,17 @@ class UserManagment:
         except EmailNotValidError:
             raise ValueError("Invalid email address")
 
+        (
+            is_email_in_use,
+            existing_user,
+        ) = await self.mongo_client.read_manager.find_one(
+            {"email": str(email)}
+        )
+
+        if is_email_in_use:
+            Logger.error("alread registered email")
+            return False, "alread registered email"
+
         # Insert the user data into the MongoDB collection
         (
             bool,
@@ -67,7 +78,7 @@ class UserManagment:
             "email": email,
         }
 
-        return result
+        return True, result
 
     async def update_username(self, user_id: str, new_username):
         try:
@@ -121,7 +132,7 @@ class UserManagment:
             raise ValueError(f"Invalid email address ({new_email})")
 
         bool, user = await self.mongo_client.read_manager.find_one(
-            query={"user_id": user_id}
+            query={"_id": user_id}
         )
         Logger.debug(f"update username user return = {user}")
         return user
@@ -166,34 +177,38 @@ class UserManagment:
             )
 
         # Use a more efficient method to check which argument is provided
-        query = {}
         if user_id:
-            query = {"user_id": user_id}
-        elif email:
-            query = {"email": email}
-        elif username:
-            query = {"username": username}
-
-        # Query the database based on the selected field
-        status, data = await self.mongo_client.read_manager.find_one(query)
-
-        data = convert_object_id_to_str(data)
-
-        # Logging the results
-        if user_id:
+            status, data = await self.mongo_client.read_manager.find_one(
+                query={"_id": user_id}
+            )
             Logger.debug(
                 f"get_user_data - user_id (status): {status}",
                 f"get_user_data - user_id (data): {data}",
             )
-        elif email:
+        if email:
+            query = {"email": str(email)}
+            status, data = await self.mongo_client.read_manager.find_one(query)
             Logger.debug(
+                f"email: {email}",
                 f"get_user_data - email (status): {status}",
                 f"get_user_data - email (data): {data}",
             )
-        elif username:
+        if username:
+            status, data = await self.mongo_client.read_manager.find_one(
+                query={"username": username}
+            )
             Logger.debug(
                 f"get_user_data - username (status): {status}",
                 f"get_user_data - username (data): {data}",
             )
+
+        data = convert_object_id_to_str(data)
+
+        Logger.debug(
+            "final output after convert_object_id_to_str (status)",
+            f"{status}",
+            "final output after convert_object_id_to_str (data)",
+            f"{data}",
+        )
 
         return status, data

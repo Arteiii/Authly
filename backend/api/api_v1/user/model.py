@@ -77,7 +77,7 @@ class LoginRequest(BaseModel):
 
     @validator("password")
     def validate_password(cls, value):
-        return decode_base64(value)
+        return validate_base64_password(value)
 
 
 class DeleteUser(BaseModel):

@@ -1,6 +1,6 @@
 import random
 import string
-from core.db.redis import AsyncRedisManager
+from core.db.redis import RedisManager
 from core.config import config
 from core.log import Logger
 
@@ -18,9 +18,9 @@ def generate_token():
     return token
 
 
-async def check_access_token_exists(redis_manager, user_id):
+def check_access_token_exists(redis_manager, user_id):
     # Check if the access token already exists in Redis
-    existing_value = await redis_manager.get(user_id)
+    existing_value = redis_manager.get(user_id)
     if existing_value is not None:
         return existing_value  # Return the user object ID
     else:
@@ -28,7 +28,7 @@ async def check_access_token_exists(redis_manager, user_id):
 
 
 async def get_user_id(redis_manager, token):
-    user_id = await redis_manager.get(token)
+    user_id = redis_manager.get(token)
     if user_id is not None:
         return user_id
     else:
@@ -37,7 +37,7 @@ async def get_user_id(redis_manager, token):
 
 async def create_token_for_uid(expiration_time_minutes=140):
     new_token = generate_token()
-    await store_access_token(
+    store_access_token(
         token=new_token,
         expiration_time=(expiration_time_minutes * 60),
     )
@@ -47,12 +47,12 @@ async def store_access_token(redis_manager, token, user_id, expiration_time):
     # Store the access token in Redis with the corresponding
     # user object ID and an expiration time
 
-    results = await redis_manager.set(token, user_id, expiration_time)
+    results = redis_manager.set(token, user_id, expiration_time)
 
     return results
 
 
-async def Token(
+def Token(
     user_id: str = None,
     token: str = None,
     db: str = Redis_DB,
@@ -60,25 +60,25 @@ async def Token(
     host: str = Redis_Host,
     expiration_time_minutes: int = 140,
 ):
-    redis_manager = AsyncRedisManager(db=db, port=port, host=host)
-    await redis_manager.connect()
+    redis_manager = RedisManager(db=db, port=port, host=host)
+    redis_manager.connect()
 
     if token:
         uid = get_user_id(redis_manager, token)
         Logger.info(f"TOKEN: {token}\n", f"\\__ UID: {uid}")
         return uid
 
-    existing_token = await check_access_token_exists(redis_manager, user_id)
+    existing_token = check_access_token_exists(redis_manager, user_id)
 
     if existing_token:
-        await redis_manager.delete(existing_token)
+        redis_manager.delete(existing_token)
 
-    new_token = await generate_token()
-    await store_access_token(
+    new_token = generate_token()
+    store_access_token(
         redis_manager, new_token, user_id, expiration_time_minutes
     )
 
     # Close the Redis connection
-    await redis_manager.close()
+    redis_manager.close()
 
     return new_token

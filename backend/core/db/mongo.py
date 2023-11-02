@@ -96,7 +96,7 @@ class MongoDBManager:
             try:
                 result = await self.collection.find_one(query)
                 if result:
-                    Logger.debug(f"Document found: {result}")
+                    Logger.debug("Document found", f"{result}")
                     return True, result
                 else:
                     Logger.debug("No document found with the given query")
@@ -112,7 +112,7 @@ class MongoDBManager:
                 result_list = []
                 async for doc in self.collection.find(query):
                     result_list.append(doc)
-                    Logger.debug(f"find many: {doc}")
+                    Logger.debug("find many", f"{doc}")
                 return True, result_list
             except Exception as e:
                 Logger.error(
