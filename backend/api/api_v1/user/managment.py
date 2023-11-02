@@ -115,7 +115,7 @@ class UserManagment:
                 "Error occurred while updating username. read more in logs",
             )
 
-    async def update_email(self, user_id: int, new_email):
+    async def update_email(self, user_id: str, new_email):
         try:
             validate_email(new_email)
         except EmailNotValidError:
@@ -126,17 +126,27 @@ class UserManagment:
             query={"user_id": user_id}
         )
         Logger.debug(f"update username user return = {user}")
-
         return user
 
-    async def delete_user(self, user_id: List[int]):
-        db_result = "succe.."  # add logic
-        results = {user_id: db_result}
-        return results
+    async def delete_user(self, user_id: List[str]):
+        results = {}
+        for id in user_id:
+            (
+                bool,
+                db_result,
+            ) = await self.mongo_client.delete_manager.delete_document(
+                query={"_id": ObjectId(id)}
+            )
+            results[id] = bool
+
+        if False in results.values():
+            return False, results
+        else:
+            return True, results
 
     async def update_user_roles(
         self,
-        user_id: [int],
+        user_id: [str],
         add_roles: List = None,
         remove_roles: List = None,
         set_roles: List = None,

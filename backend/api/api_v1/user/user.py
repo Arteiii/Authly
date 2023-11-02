@@ -5,10 +5,9 @@ import time
 
 from typing import Annotated, Union
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
-
+from api.api_v1.authentication import user_authorization as ua
 from api.api_v1.user import model
 from core.config import config
 from core.db.mongo import MongoDBManager
@@ -19,10 +18,28 @@ from core.log import Logger
 
 app = APIRouter()
 Mongo_URL = config.MongodbSettings.MONGODB_URL
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+# to get a string like this run:
+# openssl rand -hex 32
+# ef803e1df378a4a455844cfefb374da56f0e7c69de72c5190f67423b1edd4932
 
 
-# utils
+fake_users_db = {
+    "johndoe": {
+        "username": "johndoe",
+        "full_name": "John Doe",
+        "email": "johndoe@example.com",
+        "hashed_password": "fakehashedsecret",
+        "disabled": False,
+    },
+    "alice": {
+        "username": "alice",
+        "full_name": "Alice Wonderson",
+        "email": "alice@example.com",
+        "hashed_password": "fakehashedsecret2",
+        "disabled": True,
+    },
+}
 
 
 class User(BaseModel):
@@ -32,17 +49,8 @@ class User(BaseModel):
     disabled: Union[bool, None] = None
 
 
-def fake_decode_token(token):
-    return User(
-        username=token + "fakedecoded",
-        email="john@example.com",
-        full_name="John Doe",
-    )
-
-
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    user = fake_decode_token(token)
-    return user
+class UserInDB(User):
+    hashed_password: str
 
 
 def login_log_reponse(data) -> dict:
@@ -98,115 +106,83 @@ async def register_user(user_data: model.UserRegistration) -> model.UserResult:
         return results
 
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=f"Bad Request: {ve}")
+        Logger.error(f"Bad Request: {ve}")
+        raise HTTPException(status_code=400, detail="Bad Request")
 
     except Exception as e:
         Logger.error(f"Exception while creating user ({e})")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.get("/", response_model=model.UserDataResponse)
-async def get_users_by_usernam(data: model.GetUsersByName):
-    """
-    # Search for users by usernames. (V1)
+@app.delete("/")
+async def delete_user(data: model.DeleteUser) -> model.DeleteUserResponse:
+    user_manager = UserManagment()
 
-    This endpoint takes a list of usernames and\
-        returns user data for each username.
+    is_success, results = await user_manager.delete_user(user_id=data.user_id)
 
-    Args:
-        data (model.GetUsersByName):\
-            Request data containing a list of usernames.
+    response = model.DeleteUserResponse(
+        overall_status=is_success, details=[results]
+    )
 
-    Returns:
-        dict: A dictionary with usernames as keys and user data as values.
-
-    ### Example Request:
-    ```json
-    {
-        "usernames": ["abc#1234", "abcasdasdc#1224"]
-    }
-    ```
-    ### Example Response:
-    ```json
-    {
-        "user_data": {
-            "abc#1234": {
-                "email": "user@example.com",
-                "username": "abc#1234",
-                "password": "$argon2id$..."
-            },
-            "abcasdasdc#1224": {
-                "email": "user2@example.com",
-                "username": "abcasdasdc#1224",
-                "password": "$argon2id$..."
-            }
-        }
-    }
-    ```
-    """
-    usernames = data.usernames
-
-    try:
-        mongo_client = MongoDBManager(
-            collection_name="Users",
-            db_name="mydb",
-            db_url=Mongo_URL,
+    if not is_success:
+        Logger.debug(
+            f"""{__file__}, "delete_user", {is_success}, {response}"""
         )
-
-        response_data = {}  # Initialize an empty dictionary
-
-        for username in usernames:
-            search_dict = {"username": f"{username}"}
-            print(search_dict)
-            user_data = await mongo_client.read_manager.find_one(
-                query=search_dict
-            )
-
-            if user_data:
-                # Convert the ObjectId to a string
-                user_data["_id"] = str(user_data["_id"])
-                response_data[username] = {**user_data, "username": username}
-            else:
-                response_data[username] = None  # User not found
-
-        return {"user_data": response_data}
-    finally:
-        await mongo_client.close_connection()
+    else:
+        Logger.debug(f"""{is_success}, {response} {type(response)}""")
+    return response
 
 
-# @app.get("/login")
-# async def login_with_token(credentials: model.Login):
-#     return {"token": token}
+@app.post("/token")
+async def login(form_data: Annotated[ua.OAuth2PasswordRequestForm, Depends()]):
+    user_dict = fake_users_db.get(form_data.username)
+    if not user_dict:
+        raise HTTPException(
+            status_code=400, detail="Incorrect username or password"
+        )
+    user = UserInDB(**user_dict)
+    hashed_password = ua.fake_hash_password(form_data.password)
+    if not hashed_password == user.hashed_password:
+        raise HTTPException(
+            status_code=400, detail="Incorrect username or password"
+        )
+    return {"access_token": user.username, "token_type": "bearer"}
 
 
-@app.get("/me")
+@app.get("/users/me/", response_model=ua.User)
 async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_user)]
+    current_user: Annotated[str, Depends(ua.get_current_active_user)]
 ):
     return current_user
 
 
-@app.patch("update_username")
-async def update_username(
-    data: model.UpdateUsername, token: Annotated[str, Depends(oauth2_scheme)]
-):
-    try:
-        user_manager = UserManagment()
+# async def read_users_me(
+#     current_user: Annotated[User, Depends(get_current_active_user)]
+# ):
+#     return current_user
 
-        bool, results = await user_manager.update_username(
-            user_id=data.user_id,
-            new_username=data.username,
-        )
-        if bool is True:
-            return "Finished"
-        else:
-            raise HTTPException(
-                status_code=500, detail="Internal Server Error"
-            )
 
-    except ValueError as ve:
-        raise HTTPException(status_code=400, detail=f"Bad Request: {ve}")
+# @app.patch("update_username")
+# async def update_username(
+#     data: model.UpdateUsername, token: Annotated[str, Depends(oauth2_scheme)]
+# ):
+#     try:
+#         user_manager = UserManagment()
 
-    except Exception as e:
-        Logger.error(f"Exception while creating user ({e})")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+#         bool, results = await user_manager.update_username(
+#             user_id=data.user_id,
+#             new_username=data.username,
+#         )
+#         if bool is True:
+#             return "Finished"
+#         else:
+#             raise HTTPException(
+#                 status_code=500, detail="Internal Server Error"
+#             )
+
+#     except ValueError as ve:
+#         raise HTTPException(status_code=400, detail=f"Bad Request: {ve}")
+
+#     except Exception as e:
+#         Logger.error(f"Exception while creating user ({e})")
+#         raise HTTPException(status_code=500, detail="Internal Server Error")

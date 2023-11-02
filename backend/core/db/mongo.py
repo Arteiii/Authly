@@ -210,7 +210,7 @@ class MongoDBManager:
                 print(f"Error occurred during delete_many operation: {e}")
                 return (
                     False,
-                    f"Error occurred during delete_many operation: {e}",
+                    "Error occurred during delete_many operation: (see logs)",
                 )
 
     async def close_connection(self):

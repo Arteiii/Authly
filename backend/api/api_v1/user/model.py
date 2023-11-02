@@ -1,5 +1,5 @@
 import base64
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from core.log import Logger
 
 from core.config import config
@@ -14,7 +14,7 @@ def encode_to_base64(value: str) -> str:
     except Exception as e:
         Logger.error(f"Invalid Base64-encoded password ({e})")
         raise ValueError(
-            f"Error occurred while encoding to Base64: (more in logs)"
+            "Error occurred while encoding to Base64: (more in logs)"
         )
 
 
@@ -70,7 +70,7 @@ class UserRegistration(BaseModel):
         return dict(self)
 
 
-class Login(BaseModel):
+class LoginRequest(BaseModel):
     email: Optional[EmailStr]
     user_id: Optional[str]
     password: str
@@ -78,6 +78,15 @@ class Login(BaseModel):
     @validator("password")
     def validate_password(cls, value):
         return decode_base64(value)
+
+
+class DeleteUser(BaseModel):
+    user_id: List[str]
+
+
+class DeleteUserResponse(BaseModel):
+    overall_status: bool
+    details: List[Dict[str, bool]]
 
 
 class UpdateUsername(BaseModel):
@@ -93,8 +102,13 @@ class UserResult(BaseModel):
 
 
 class GetUsersByName(BaseModel):
-    usernames: list[str]
+    usernames: List[str]
 
 
 class GetLog(BaseModel):
     username: Optional[str]
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
