@@ -8,6 +8,7 @@ from email_validator import EmailNotValidError, validate_email
 
 
 from pydantic import EmailStr
+from core.object_id import convert_object_id_to_str
 from core.db.mongo import MongoDBManager
 from core.config import config
 from core.log import Logger
@@ -122,7 +123,7 @@ class UserManagment:
             Logger.error(f"Invalid email address ({new_email})")
             raise ValueError(f"Invalid email address ({new_email})")
 
-        user = await self.mongo_client.read_manager.find_one(
+        bool, user = await self.mongo_client.read_manager.find_one(
             query={"user_id": user_id}
         )
         Logger.debug(f"update username user return = {user}")
@@ -157,3 +158,45 @@ class UserManagment:
         # after ops:
         results = {user_id: op_result}
         return results
+
+    async def get_user_data(
+        self, user_id: str = None, email: str = None, username: str = None
+    ):
+        # Check if at least one of the parameters is provided
+        if not user_id and not email and not username:
+            raise ValueError(
+                "At least one of user_id, email, or username is required."
+            )
+
+        # Use a more efficient method to check which argument is provided
+        query = {}
+        if user_id:
+            query = {"user_id": user_id}
+        elif email:
+            query = {"email": email}
+        elif username:
+            query = {"username": username}
+
+        # Query the database based on the selected field
+        status, data = await self.mongo_client.read_manager.find_one(query)
+
+        data = convert_object_id_to_str(data)
+
+        # Logging the results
+        if user_id:
+            Logger.debug(
+                f"get_user_data - user_id (status): {status},\
+                    get_user_data - user_id (data): {data}"
+            )
+        elif email:
+            Logger.debug(
+                f"get_user_data - email (status): {status},\
+                    get_user_data - email (data): {data}"
+            )
+        elif username:
+            Logger.debug(
+                f"get_user_data - username (status): {status},\
+                    get_user_data - username (data): {data}"
+            )
+
+        return status, data

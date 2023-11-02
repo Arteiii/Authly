@@ -4,9 +4,11 @@ main.py
 import time
 
 from typing import Annotated, Union
+from email_validator import EmailNotValidError
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, ValidationError, validate_email
 
+from api.api_v1.authentication import token as token
 from api.api_v1.authentication import user_authorization as ua
 from api.api_v1.user import model
 from core.config import config
@@ -24,38 +26,22 @@ Mongo_URL = config.MongodbSettings.MONGODB_URL
 # ef803e1df378a4a455844cfefb374da56f0e7c69de72c5190f67423b1edd4932
 
 
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "fakehashedsecret",
-        "disabled": False,
-    },
-    "alice": {
-        "username": "alice",
-        "full_name": "Alice Wonderson",
-        "email": "alice@example.com",
-        "hashed_password": "fakehashedsecret2",
-        "disabled": True,
-    },
-}
-
-
 class User(BaseModel):
     username: str
-    email: Union[str, None] = None
-    full_name: Union[str, None] = None
+    email: Union[EmailStr, None] = None
     disabled: Union[bool, None] = None
 
 
 class UserInDB(User):
-    hashed_password: str
+    _id: str
+    password: str
+    role: Union[str, None] = None
+    geo_location: Union[str, None] = None
 
 
 def login_log_reponse(data) -> dict:
     return {
-        "id": str(data["_id"]),
+        "_id": str(data["_id"]),
         "ip_address": data["ip_address"],
         "password": data["password"],
         "username": data["username"],
@@ -133,20 +119,33 @@ async def delete_user(data: model.DeleteUser) -> model.DeleteUserResponse:
     return response
 
 
-@app.post("/token")
+@app.post("/token", response_model=model.Token)
 async def login(form_data: Annotated[ua.OAuth2PasswordRequestForm, Depends()]):
-    user_dict = fake_users_db.get(form_data.username)
-    if not user_dict:
+    user_manager = UserManagment()
+    bool, user_dict = await user_manager.get_user_data(
+        email=form_data.password
+    )
+
+    if not bool:
         raise HTTPException(
-            status_code=400, detail="Incorrect username or password"
+            status_code=400, detail="Incorrect email or password"
         )
+
     user = UserInDB(**user_dict)
-    hashed_password = ua.fake_hash_password(form_data.password)
-    if not hashed_password == user.hashed_password:
+    Logger.debug(f"user.password: {user.password}")
+    Logger.debug(f"user._id: {user._id}")
+    pw_verify = Hasher.verify_password(
+        password=form_data.password, hashed_password=user.password
+    )
+
+    if not pw_verify:
         raise HTTPException(
             status_code=400, detail="Incorrect username or password"
         )
-    return {"access_token": user.username, "token_type": "bearer"}
+    else:
+        access_token = token.Token(user_id=user._id)
+
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/users/me/", response_model=ua.User)

@@ -12,7 +12,7 @@ Redis_Port = config.RedisdbSettings.REDIS_PORT
 Redis_Host = config.RedisdbSettings.REDIS_HOST
 
 
-def generate_access_token():
+def generate_token():
     # Generate a random string for the access token
     token = "".join(random.choices(string.ascii_letters + string.digits, k=32))
     return token
@@ -36,7 +36,7 @@ async def get_user_id(redis_manager, token):
 
 
 async def create_token_for_uid(expiration_time_minutes=140):
-    new_token = generate_access_token()
+    new_token = generate_token()
     await store_access_token(
         token=new_token,
         expiration_time=(expiration_time_minutes * 60),
@@ -52,7 +52,7 @@ async def store_access_token(redis_manager, token, user_id, expiration_time):
     return results
 
 
-async def main(
+async def Token(
     user_id: str = None,
     token: str = None,
     db: str = Redis_DB,
@@ -65,7 +65,7 @@ async def main(
 
     if token:
         uid = get_user_id(redis_manager, token)
-        Logger.info(f"TOKEN: {token}\n \\__ UID: {uid}")
+        Logger.info(f"TOKEN: {token}\n", f"\\__ UID: {uid}")
         return uid
 
     existing_token = await check_access_token_exists(redis_manager, user_id)
@@ -73,7 +73,7 @@ async def main(
     if existing_token:
         await redis_manager.delete(existing_token)
 
-    new_token = await generate_access_token()
+    new_token = await generate_token()
     await store_access_token(
         redis_manager, new_token, user_id, expiration_time_minutes
     )
