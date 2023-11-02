@@ -2,8 +2,7 @@
 
 Authly is a user management application built on [FastAPI](https://fastapi.tiangolo.com/) in Python, designed to provide user authentication and access control for various applications.
 
-[![CodeFactor](https://www.codefactor.io/repository/github/wavy42/authly/badge)](https://www.codefactor.io/repository/github/wavy42/authly)
----
+## [![CodeFactor](https://www.codefactor.io/repository/github/wavy42/authly/badge)](https://www.codefactor.io/repository/github/wavy42/authly)
 
 # 🚧 Work in Progress: Not Ready for Deployment
 
@@ -19,11 +18,10 @@ We greatly value any potential contributions and support from the community. We 
 
 TODO:
 
-- [ ] rework mongodb crud (beanie maybe)
+- [x] rework mongodb crud (beanie maybe)
 - [ ] refactor some apiv1 stuff
 - [ ] add cookie based login (redis)
-- [ ] key add checks for already exist (auto add random num?)
-- [ ] base64 for all spezial chars options
+- [ ] username checks for dup (auto add random num?)
 
 ## 💼 Commercial Use
 
@@ -73,6 +71,10 @@ We highly recommend writing tests for your application to ensure its reliability
 🌟 Authly is developed by wavy42 & Arteii. 🚀
 
 We appreciate the contributions of all our collaborators and supporters. 🙏
+
+Frontend:
+[windmill-ui](https://windmillui.com/)
+[shadcn/ui](https://ui.shadcn.com/)
 
 ## License
 

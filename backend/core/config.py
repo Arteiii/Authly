@@ -7,6 +7,7 @@ import os
 import json
 from enum import Enum
 from pydantic_settings import BaseSettings
+from core.log import Logger
 
 
 class HashingAlgorithmTypes(str, Enum):
@@ -21,8 +22,26 @@ class HashingAlgorithmTypes(str, Enum):
 ############################################################
 
 
+class LoggingSettings(BaseSettings):
+    """
+    Configuration settings for logging.
+
+    Attributes:
+        LOG_LEVEL (str): The log level for the application.\
+            Default is "INFO".
+            Possible values include "DEBUG", "INFO",\
+                "WARNING", "ERROR", and "CRITICAL".
+        LOG_FILE_PATH (str): The file path for the log file.\
+            Default is "app.log".
+            The log file will be created at the specified path.
+    """
+
+    LOG_LEVEL: str = "INFO"
+    LOG_FILE_PATH: str = "app.log"
+
+
 class Debug(BaseSettings):
-    DebugHashingTime: bool = False
+    LoggingSettings: LoggingSettings
 
 
 class API_V1(BaseSettings):
@@ -190,7 +209,7 @@ class MongodbSettings(BaseSettings):
     """
 
     MONGODB_URL: str = "mongodb://localhost:27017"
-    MONGODB_NAME: str = "mydb"
+    MONGODB_NAME: str = "Authly"
     MONGODB_USERNAME: str
     MONGODB_PASSWORD: str
     MONGODB_USE_SSL: bool = False
@@ -279,22 +298,30 @@ class AppConfig(BaseSettings):
     SessionManagerSettings: SessionManagerSettings
 
 
-# Get the directory of the current script or module
-script_directory = os.path.dirname(os.path.realpath(__file__))
+try:
+    # Get the directory of the current script or module
+    script_directory = os.path.dirname(os.path.realpath(__file__))
 
-# Move up one directory to reach the parent directory
-parent_directory = os.path.abspath(os.path.join(script_directory, os.pardir))
+    # Move up one directory to reach the parent directory
+    parent_directory = os.path.abspath(
+        os.path.join(script_directory, os.pardir)
+    )
 
-# Construct the relative path to the JSON file in the parent directory
-json_file_path = os.path.join(parent_directory, "config.json")
+    # Construct the relative path to the JSON file in the parent directory
+    json_file_path = os.path.join(parent_directory, "config", "config.json")
 
+    Logger.info("JSON file path:", f"{json_file_path}")
 
-# Load JSON file
-with open(
-    json_file_path,
-    encoding="utf-8",
-) as f:
-    config_data = json.load(f)
+    # Load JSON file
+    with open(json_file_path, encoding="utf-8") as f:
+        config_data = json.load(f)
+        # Parse JSON into Pydantic model
 
-# Parse JSON into Pydantic model
-config = AppConfig(**config_data)
+except FileNotFoundError as e:
+    Logger.error(f"File not found error: {e}")
+except json.JSONDecodeError as e:
+    Logger.error(f"JSON decoding error: {e}")
+except Exception as e:
+    Logger.error(f"An unexpected error occurred: {e}")
+
+config = AppConfig(**config_data)  # Add your Pydantic model here

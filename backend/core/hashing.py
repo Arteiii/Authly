@@ -86,7 +86,7 @@ class Argon:
                 salt_len=argon_config.SALT_LEN,
                 encoding=argon_config.ENCODING,
             )
-            return hasher.verify(stored_hash, password)
+            return hasher.verify(password=password, hash=stored_hash)
         except argon2.exceptions.VerifyMismatchError:
             return False
 

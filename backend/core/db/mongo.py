@@ -25,6 +25,7 @@ Date: 25/10/2023
 
 import motor.motor_asyncio
 import asyncio
+from core.log import Logger
 
 
 class MongoDBManager:
@@ -60,36 +61,28 @@ class MongoDBManager:
 
         async def insert_document(self, data):
             try:
-                await self.collection.insert_one(data)
-                print("Document inserted successfully.")
-                return "Document inserted successfully."
+                result = await self.collection.insert_one(data)
+                inserted_id = str(result.inserted_id)
+                Logger.debug(
+                    f"Document with ID {inserted_id} inserted successfully"
+                )
+                return True, inserted_id
             except Exception as e:
-                print(f"Error occurred while inserting document: {e}")
-                return f"Error occurred while inserting document: {e}"
+                Logger.debug("Error occurred while inserting document", f"{e}")
+                return False, "Error occurred while inserting document"
 
         async def insert_many_documents(self, data_list):
             try:
                 await self.collection.insert_many(data_list)
-                print(f"Documents inserted successfully. ({data_list})")
-                return "Documents inserted successfully."
-            except Exception as e:
-                print(f"Error occurred while inserting documents: {e}")
-                return f"Error occurred while inserting documents: {e}"
-
-        async def bulk_write(self, requests):
-            try:
-                result = await self.collection.bulk_write(requests)
-                print(f"{result.inserted_count} documents inserted.")
-                print(f"{result.modified_count} documents updated.")
-                print(f"{result.deleted_count} documents deleted.")
-                return (
-                    result.inserted_count,
-                    result.modified_count,
-                    result.deleted_count,
+                Logger.debug(
+                    "Documents inserted successfully:", f"{data_list}"
                 )
+                return True, "Documents inserted successfully"
             except Exception as e:
-                print(f"Error occurred during bulk write operation: {e}")
-                return f"Error occurred during bulk write operation: {e}"
+                Logger.debug(
+                    "Error occurred while inserting documents:", f"{e}"
+                )
+                return False, "Error occurred while inserting documents"
 
     #####################################
     #                Read:              #
@@ -103,25 +96,29 @@ class MongoDBManager:
             try:
                 result = await self.collection.find_one(query)
                 if result:
-                    print("Document found:", result)
-                    return result
+                    Logger.debug("Document found", f"{result}")
+                    return True, result
                 else:
-                    print("No document found with the given query.")
-                    return "No document found with the given query."
+                    Logger.debug("No document found with the given query")
+                    return False, result
             except Exception as e:
-                print(f"Error occurred during find_one operation: {e}")
-                return f"Error occurred during find_one operation: {e}"
+                Logger.error(
+                    "Error occurred during find_one operation", f"{e}"
+                )
+                return False, "Error occurred during find_one operation"
 
         async def find_many(self, query):
             try:
                 result_list = []
                 async for doc in self.collection.find(query):
                     result_list.append(doc)
-                    print(doc)
-                return result_list
+                    Logger.debug("find many", f"{doc}")
+                return True, result_list
             except Exception as e:
-                print(f"Error occurred during find_many operation: {e}")
-                return f"Error occurred during find_many operation: {e}"
+                Logger.error(
+                    "Error occurred during find_many operation", f"{e}"
+                )
+                return False, "Error occurred during find_many operation"
 
     #####################################
     #               Update:             #
@@ -137,14 +134,19 @@ class MongoDBManager:
                     query, {"$set": update_data}
                 )
                 if result.modified_count > 0:
-                    print("Document updated successfully.")
-                    return "Document updated successfully."
+                    Logger.debug("Document updated successfully")
+                    return True, "Document updated successfully"
                 else:
-                    print("No document found with the given query.")
-                    return "No document found with the given query."
+                    Logger.debug("No document found with the given query")
+                    return False, "No document found with the given query"
             except Exception as e:
-                print(f"Error occurred during update_one operation: {e}")
-                return f"Error occurred during update_one operation: {e}"
+                Logger.error(
+                    "Error occurred during update_one operation", f"{e}"
+                )
+                return (
+                    False,
+                    "Error occurred during update_one operation",
+                )
 
         async def update_many_documents(self, query, update_data):
             try:
@@ -152,27 +154,37 @@ class MongoDBManager:
                     query, {"$set": update_data}
                 )
                 if result.modified_count > 0:
-                    print("Documents updated successfully.")
-                    return "Documents updated successfully."
+                    Logger.debug("Documents updated successfully")
+                    return True, "Documents updated successfully"
                 else:
-                    print("No document found with the given query.")
-                    return "No document found with the given query."
+                    Logger.debug("No document found with the given query")
+                    return False, "No document found with the given query"
             except Exception as e:
-                print(f"Error occurred during update_many operation: {e}")
-                return f"Error occurred during update_many operation: {e}"
+                Logger.error(
+                    "Error occurred during update_many operation", f"{e}"
+                )
+                return (
+                    False,
+                    "Error occurred during update_many operation",
+                )
 
         async def replace_one_document(self, query, replace_data):
             try:
                 result = await self.collection.replace_one(query, replace_data)
                 if result.modified_count > 0:
-                    print("Document replaced successfully.")
-                    return "Document replaced successfully."
+                    Logger.debug("Document replaced successfully")
+                    return True, "Document replaced successfully"
                 else:
-                    print("No document found with the given query.")
-                    return "No document found with the given query."
+                    Logger.debug("No document found with the given query")
+                    return False, "No document found with the given query"
             except Exception as e:
-                print(f"Error occurred during replace_one operation: {e}")
-                return f"Error occurred during replace_one operation: {e}"
+                Logger.error(
+                    "Error occurred during replace_one operation", f"{e}"
+                )
+                return (
+                    False,
+                    "Error occurred during replace_one operation",
+                )
 
     #####################################
     #               Delete:             #
@@ -185,34 +197,46 @@ class MongoDBManager:
             try:
                 result = await self.collection.delete_one(query)
                 if result.deleted_count > 0:
-                    print("Document deleted successfully.")
-                    return "Document deleted successfully."
+                    Logger.debug("Document deleted successfully")
+                    return True, "Document deleted successfully"
                 else:
-                    print("No document found with the given query.")
-                    return "No document found with the given query."
+                    Logger.debug("No document found with the given query")
+                    return False, "No document found with the given query"
             except Exception as e:
-                print(f"Error occurred during delete_document operation: {e}")
-                return f"Error occurred during delete_document operation: {e}"
+                Logger.error(
+                    "Error occurred during delete_document operation", f"{e}"
+                )
+                return (
+                    False,
+                    "Error occurred during delete_document operation",
+                )
 
         async def delete_many_documents(self, query):
             try:
                 result = await self.collection.delete_many(query)
                 if result.deleted_count > 0:
-                    print("Documents deleted successfully.")
-                    return "Documents deleted successfully."
+                    Logger.debug("Documents deleted successfully")
+                    return True, "Documents deleted successfully"
                 else:
-                    print("No documents found with the given query.")
-                    return "No documents found with the given query."
+                    Logger.debug("No documents found with the given query")
+                    return False, "No documents found with the given query"
             except Exception as e:
-                print(f"Error occurred during delete_many operation: {e}")
-                return f"Error occurred during delete_many operation: {e}"
+                Logger.error(
+                    "Error occurred during delete_many operation", f"{e}"
+                )
+                return (
+                    False,
+                    "Error occurred during delete_many operation",
+                )
 
     async def close_connection(self):
         try:
             self.client.close()
-            return "Connection closed."
+            Logger.info("Connection closed")
+            return True, "Connection closed"
         except Exception as e:
-            return f"Error occurred during connection closing: {e}"
+            Logger.error("Error occurred during connection closing", f"{e}")
+            return False, "Error occurred during connection closing"
 
 
 async def example_usage():
