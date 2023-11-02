@@ -1,6 +1,3 @@
-import random
-
-
 from datetime import datetime
 from typing import List
 from bson import ObjectId
@@ -29,7 +26,7 @@ class UserManagment:
 
     async def create_user(
         self, username: str, email: EmailStr, password: str, role: str
-    ) -> dict:
+    ):
         current_time = datetime.now().isoformat()
 
         # Generate a unique user ID
@@ -185,18 +182,18 @@ class UserManagment:
         # Logging the results
         if user_id:
             Logger.debug(
-                f"get_user_data - user_id (status): {status},\
-                    get_user_data - user_id (data): {data}"
+                f"get_user_data - user_id (status): {status}",
+                f"get_user_data - user_id (data): {data}",
             )
         elif email:
             Logger.debug(
-                f"get_user_data - email (status): {status},\
-                    get_user_data - email (data): {data}"
+                f"get_user_data - email (status): {status}",
+                f"get_user_data - email (data): {data}",
             )
         elif username:
             Logger.debug(
-                f"get_user_data - username (status): {status},\
-                    get_user_data - username (data): {data}"
+                f"get_user_data - username (status): {status}",
+                f"get_user_data - username (data): {data}",
             )
 
         return status, data

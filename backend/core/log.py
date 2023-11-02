@@ -1,4 +1,5 @@
 import sys
+import json
 import datetime
 import inspect
 
@@ -6,90 +7,173 @@ from colorama import init, Fore
 
 init(autoreset=True)  # Initialize colorama
 
+application = "Authly"
+
+
+def footer(COL: str = Fore.WHITE):
+    print(f"{COL}|> " + "-" * 50 + f"{Fore.RESET}")
+
+
+def banner(
+    main_col: str,
+    main_text: str,
+    filename: str,
+    function: str,
+    line: int,
+    time: str,
+    application: str = application,
+):
+    print(
+        f"{main_col}|> --- {Fore.LIGHTCYAN_EX}{application}{main_col}"
+        f" ---- [{main_text}] ---- [{Fore.YELLOW}{time}{Fore.RESET}"
+        f"{main_col}] --- [{Fore.BLACK}{filename}{main_col}] --- "
+        f"[{Fore.BLUE}{function}{main_col}] --- "
+        f"[{Fore.LIGHTYELLOW_EX}{line}{main_col}]"
+    )
+
 
 class Logger:
     @staticmethod
     def info(*args):
-        if args:
-            print(
-                f"{Fore.BLUE}[INFO]    {args[0]}{Fore.RESET}"
-            )  # Print the first string on the same line
-            if len(args) > 1:  # Check if there are more than one string
-                for i, msg in enumerate(
-                    args[1:], start=1
-                ):  # Print subsequent strings with indentation
-                    print(
-                        f"{Fore.BLUE}{'          ' * (10 if i == 1 else 14)}\
-                            {msg}{Fore.RESET}"
-                    )
-        else:
-            print(f"{Fore.BLUE}[INFO]    Info Log Message{Fore.RESET}")
-
-    @staticmethod
-    def warning(msg: str = "Warning Log Message"):
-        print(f"{Fore.YELLOW}[WARNING]    {msg}{Fore.RESET}")
-
-    @staticmethod
-    def error(msg: str = "Error Log Message"):
-        print(f"{Fore.RED}[ERROR]    {msg}{Fore.RESET}")
-
-    @staticmethod
-    def critical(*args):
+        NAME = "INFO"
+        COL = Fore.BLUE
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         caller_frame = inspect.currentframe().f_back
         caller_info = inspect.getframeinfo(caller_frame)
 
         if args:
-            print(
-                f"{Fore.MAGENTA}|> --- [CRITICAL] -------- [\
-{Fore.LIGHTMAGENTA_EX}{current_time}{Fore.RESET}{Fore.MAGENTA}]\
---- [{Fore.BLACK}{caller_info.filename}{Fore.MAGENTA}] --- [{Fore.BLUE}\
-{caller_info.function}{Fore.MAGENTA}] --- [{Fore.LIGHTYELLOW_EX}\
-{caller_info.lineno}{Fore.MAGENTA}]"
+            banner(
+                main_col=COL,
+                main_text=NAME,
+                filename=caller_info.filename,
+                function=caller_info.function,
+                line=caller_info.lineno,
+                time=current_time,
+            )
+        for arg in args[0:]:
+            print(f"{COL}|{Fore.RESET} " + str(arg))
+        if len(args) > 1:
+            footer(COL)
+
+    @staticmethod
+    def warning(*args):
+        NAME = "WARNING"
+        COL = Fore.YELLOW
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        caller_frame = inspect.currentframe().f_back
+        caller_info = inspect.getframeinfo(caller_frame)
+
+        if args:
+            banner(
+                main_col=COL,
+                main_text=NAME,
+                filename=caller_info.filename,
+                function=caller_info.function,
+                line=caller_info.lineno,
+                time=current_time,
+            )
+        for arg in args[0:]:
+            print(f"{COL}|{Fore.RESET} " + str(arg))
+        if len(args) > 1:
+            footer(COL)
+
+    @staticmethod
+    def error(*args):
+        NAME = "ERROR"
+        COL = Fore.MAGENTA
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        caller_frame = inspect.currentframe().f_back
+        caller_info = inspect.getframeinfo(caller_frame)
+
+        if args:
+            banner(
+                main_col=COL,
+                main_text=NAME,
+                filename=caller_info.filename,
+                function=caller_info.function,
+                line=caller_info.lineno,
+                time=current_time,
             )
 
         for arg in args[0:]:
-            print(f"{Fore.MAGENTA}|{Fore.RESET} " + arg)
-        print(
-            f"{Fore.MAGENTA}|> -----------------------------------------------\
-{Fore.RESET}"
-        )
+            print(f"{COL}|{Fore.RESET} " + str(arg))
+        if len(args) > 1:
+            footer(COL)
+
+    @staticmethod
+    def critical(*args):
+        NAME = "CRITICAL"
+        COL = Fore.RED
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        caller_frame = inspect.currentframe().f_back
+        caller_info = inspect.getframeinfo(caller_frame)
+
+        if args:
+            banner(
+                main_col=COL,
+                main_text=NAME,
+                filename=caller_info.filename,
+                function=caller_info.function,
+                line=caller_info.lineno,
+                time=current_time,
+            )
+        for arg in args[0:]:
+            print(f"{COL}|{Fore.RESET} " + str(arg))
+        if len(args) > 1:
+            footer(COL)
         sys.exit(1)
 
     @staticmethod
     def debug(*args):
+        NAME = "DEBUG"
+        COL = Fore.CYAN
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         caller_frame = inspect.currentframe().f_back
         caller_info = inspect.getframeinfo(caller_frame)
 
         if args:
-            print(
-                f"{Fore.CYAN}|> --- [DEBUG] -------- [{Fore.LIGHTMAGENTA_EX}\
-{current_time}{Fore.RESET}{Fore.CYAN}]\
---- [{Fore.BLACK}{caller_info.filename}{Fore.CYAN}] --- [{Fore.BLUE}\
-{caller_info.function}{Fore.CYAN}] --- [{Fore.LIGHTYELLOW_EX}\
-{caller_info.lineno}{Fore.CYAN}]"
+            banner(
+                main_col=COL,
+                main_text=NAME,
+                filename=caller_info.filename,
+                function=caller_info.function,
+                line=caller_info.lineno,
+                time=current_time,
             )
 
         for arg in args[0:]:
-            print(f"{Fore.CYAN}|{Fore.RESET} " + arg)
-        print(
-            f"{Fore.CYAN}| -----------------------------------------------\
-{Fore.RESET}"
-        )
+            print(f"{COL}|{Fore.RESET} " + str(arg))
+        if len(args) > 1:
+            footer(COL)
 
 
 # Example usage of the custom_logger function
-Logger.debug(
-    "This is the first line of the log.",
-    "This is the second line of the log.",
-    "This is the third line of the log.",
-)
-Logger.critical(
-    "This is the first line of the log.",
-    "This is the second line of the log.",
-    "This is the third line of the log.",
-)
+if __name__ == "__main__":
+    Logger.debug(
+        "This is the first line of the log.",
+        "This is the second line of the log.",
+        "This is the third line of the log.",
+    )
+    Logger.error(
+        "This is the first line of the log.",
+        "This is the second line of the log.",
+        "This is the third line of the log.",
+    )
+    Logger.warning(
+        "This is the first line of the log.",
+        "This is the second line of the log.",
+        "This is the third line of the log.",
+    )
+    Logger.info(
+        "This is the first line of the log.",
+        "This is the second line of the log.",
+        "This is the third line of the log.",
+    )
+    Logger.critical(
+        "This is the first line of the log.",
+        "This is the second line of the log.",
+        "This is the third line of the log.",
+    )
 
 
 # mongo schema:

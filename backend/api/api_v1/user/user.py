@@ -58,15 +58,17 @@ def login_log_reponse(data) -> dict:
 
 
 async def hash_password(password) -> str:
-    Logger.debug(f"using: {config.PasswordConfig.HASHING_ALGORITHM}")
     start_time = time.time()  # Record the start time
 
     hashed = Hasher.get_password_hash(password=password)
 
     end_time = time.time()  # Record the end time
 
-    Logger.debug(f"Hashed Password: {hashed}")
-    Logger.debug(f"Hashing Time: {end_time - start_time} seconds")
+    Logger.debug(
+        f"using: {config.PasswordConfig.HASHING_ALGORITHM}",
+        f"Hashed Password: {hashed}",
+        f"Hashing Time: {end_time - start_time} seconds",
+    )
 
     return hashed
 
@@ -82,13 +84,19 @@ async def register_user(user_data: model.UserRegistration) -> model.UserResult:
         user_manager = UserManagment()
 
         hashed_password = await hash_password(password=user_data.password)
+
+    except Exception as e:
+        Logger.error("Exception while hashing password", f"{e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    try:
         results = await user_manager.create_user(
             username=user_data.username,
             email=user_data.email,
             role="User",
             password=hashed_password,
         )
-        Logger.debug(results)
+        Logger.info(results)
         return results
 
     except ValueError as ve:
@@ -96,7 +104,7 @@ async def register_user(user_data: model.UserRegistration) -> model.UserResult:
         raise HTTPException(status_code=400, detail="Bad Request")
 
     except Exception as e:
-        Logger.error(f"Exception while creating user ({e})")
+        Logger.error("Exception while creating user", f"{e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
@@ -111,11 +119,9 @@ async def delete_user(data: model.DeleteUser) -> model.DeleteUserResponse:
     )
 
     if not is_success:
-        Logger.debug(
-            f"""{__file__}, "delete_user", {is_success}, {response}"""
-        )
+        Logger.debug("delete_user", f"{is_success}", f"{response}")
     else:
-        Logger.debug(f"""{is_success}, {response} {type(response)}""")
+        Logger.debug(f"{is_success}", f"{response}", f"{type(response)}")
     return response
 
 
@@ -132,8 +138,8 @@ async def login(form_data: Annotated[ua.OAuth2PasswordRequestForm, Depends()]):
         )
 
     user = UserInDB(**user_dict)
-    Logger.debug(f"user.password: {user.password}")
-    Logger.debug(f"user._id: {user._id}")
+    Logger.debug("user.password:", f"{user.password}")
+    Logger.debug("user._id:", f"{user._id}")
     pw_verify = Hasher.verify_password(
         password=form_data.password, hashed_password=user.password
     )

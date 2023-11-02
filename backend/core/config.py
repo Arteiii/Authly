@@ -310,7 +310,7 @@ try:
     # Construct the relative path to the JSON file in the parent directory
     json_file_path = os.path.join(parent_directory, "config", "config.json")
 
-    Logger.info(f"JSON file path: {json_file_path}")
+    Logger.info("JSON file path:", f"{json_file_path}")
 
     # Load JSON file
     with open(json_file_path, encoding="utf-8") as f:

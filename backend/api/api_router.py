@@ -24,8 +24,8 @@ if (
 
 if API_V1.API_V1_ACTIVE is True:
     Logger.info(
-        f"api version 1 is available at:\
-            https://example.com{API_ROUTE}{API_V1.API_V1_ROUTE}"
+        "api version 1 is available at:",
+        f"        \\__ https://example.com{API_ROUTE}{API_V1.API_V1_ROUTE}",
     )
     api_main_router.include_router(api_v1, prefix=API_V1.API_V1_ROUTE)
 
