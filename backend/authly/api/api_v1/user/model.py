@@ -1,9 +1,9 @@
 import base64
 from typing import Dict, List, Optional
-from core.log import Logger
+from authly.core.log import Logger
 
-from core.config import config
-from core.password_validation import validate_password_complexity
+from authly.core.config import config
+from authly.core.password_validation import validate_password_complexity
 from pydantic import BaseModel, EmailStr, Field, constr, validator
 
 

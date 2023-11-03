@@ -7,13 +7,13 @@ from typing import Annotated, Union
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr  # , ValidationError, validate_email
 
-from api.api_v1.authentication import token as token
-from api.api_v1.authentication import user_authorization as ua
-from api.api_v1.user import model
-from core.config import config
-from core.hashing import Hasher
-from api.api_v1.user.managment import UserManagment
-from core.log import Logger
+from authly.api.api_v1.authentication import token as token
+from authly.api.api_v1.authentication import user_authorization as ua
+from authly.api.api_v1.user import model
+from authly.core.config import config
+from authly.core.hashing import Hasher
+from authly.api.api_v1.user.managment import UserManagment
+from authly.core.log import Logger
 
 
 app = APIRouter()

@@ -1,6 +1,6 @@
 import redis
 
-from core.log import Logger
+from authly.core.log import Logger
 
 
 class RedisManager:
@@ -10,7 +10,7 @@ class RedisManager:
         self.port = port
         self.db = db
 
-    async def connect(self):
+    def connect(self):
         try:
             self.redis_client = redis.Redis(
                 host=self.host, port=self.port, decode_responses=True
@@ -20,7 +20,7 @@ class RedisManager:
             return False
         return True
 
-    async def close(self):
+    def close(self):
         try:
             self.redis_client.close()
         except redis.RedisError as e:
@@ -28,7 +28,7 @@ class RedisManager:
             return False
         return True
 
-    async def set(self, key, value, expiration=None):
+    def set(self, key, value, expiration=None):
         try:
             if expiration:
                 self.redis_client.setex(key, expiration, value)
@@ -39,7 +39,7 @@ class RedisManager:
             return False
         return True
 
-    async def get(self, key):
+    def get(self, key):
         try:
             result = self.redis_client.get(key)
             return result
@@ -47,7 +47,7 @@ class RedisManager:
             Logger.error(f"Error getting value from Redis: {e}")
             return False
 
-    async def delete(self, key):
+    def delete(self, key):
         try:
             self.redis_client.delete(key)
         except redis.RedisError as e:

@@ -1,11 +1,14 @@
-from api.api_router import api_main_router
-from core.config import config
-from core.log import Logger
+import asyncio
+from authly.api.api_router import api_main_router
+from authly.core.config import config
+from authly.core.log import Logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from authly.tests.redis_test import async_redis_operations
+from authly.tests.mongo_test import async_mongo_operations
 
 Debug = True
 
@@ -17,7 +20,7 @@ origins = [
 app = FastAPI()
 
 if Debug is True:
-    Logger.info("Security Middleware Disabled for debugging")
+    Logger.warning("Security Middleware Disabled for debugging")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -26,7 +29,6 @@ if Debug is True:
         allow_headers=["*"],
     )
 else:
-    Logger.info("Security Middleware Active!!")
     # Handles Cross-Origin Resource Sharing (CORS) settings
     app.add_middleware(
         CORSMiddleware,
@@ -48,12 +50,26 @@ else:
         TrustedHostMiddleware, allowed_hosts=["*"]
     )  # Replace "*" with your trusted hosts
 
-    # Include the API router
+# Include the API router
 app.include_router(api_main_router, prefix=config.API.API_ROUTE)
+
+
+# test dbs
+async def tests():
+    Logger.tests(await async_redis_operations())
+    Logger.tests(await async_mongo_operations())
+
+
+async def main():
+    await tests()
 
 
 # Debug/development mode only
 if __name__ == "__main__":
     import uvicorn
+
+    Logger.set_verbosity_level("DEVELOPMENT")
+
+    asyncio.run(main())
 
     uvicorn.run("app:app", host="localhost", port=8000)

@@ -13,7 +13,7 @@ Date: 24/10/2023
 
 import argon2
 import bcrypt
-from core.config import config
+from authly.core.config import config
 
 argon_config = config.PasswordConfig.ArgonHashingAlgorithm
 bcrypt_config = config.PasswordConfig.BcryptHashingAlgorithm

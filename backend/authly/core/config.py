@@ -7,7 +7,7 @@ import os
 import json
 from enum import Enum
 from pydantic_settings import BaseSettings
-from core.log import Logger
+from authly.core.log import Logger
 
 
 class HashingAlgorithmTypes(str, Enum):
@@ -77,7 +77,7 @@ class API_V2(BaseSettings):
 
 class API(BaseSettings):
     """
-    Configuration settings for the API.
+    Configuration settings for the authly.api.
 
     Attributes:
         API_ROUTE (str):\
@@ -281,7 +281,7 @@ class AppConfig(BaseSettings):
 
     Attributes:
         API (API):\
-            Configuration settings for the API.
+            Configuration settings for the authly.api.
         PasswordConfig (PasswordConfig):\
             Configuration settings for password hashing and policies.
         MongodbSettings (MongodbSettings):\
@@ -308,7 +308,9 @@ try:
     )
 
     # Construct the relative path to the JSON file in the parent directory
-    json_file_path = os.path.join(parent_directory, "config", "config.json")
+    json_file_path = os.path.join(
+        parent_directory, "config_temp", "config.json"
+    )
 
     Logger.info("JSON file path:", f"{json_file_path}")
 

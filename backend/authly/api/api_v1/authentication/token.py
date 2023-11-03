@@ -1,8 +1,8 @@
 import random
 import string
-from core.db.redis import RedisManager
-from core.config import config
-from core.log import Logger
+from authly.core.db.redis import RedisManager
+from authly.core.config import config
+from authly.core.log import Logger
 
 # follow the instructions on how to install redis
 # https://redis.io/docs/install/install-redis/
@@ -27,8 +27,9 @@ def check_access_token_exists(redis_manager, user_id):
         return None  # Access token does not exist
 
 
-async def get_user_id(redis_manager, token):
+def get_user_id(redis_manager, token):
     user_id = redis_manager.get(token)
+    Logger.debug(user_id)
     if user_id is not None:
         return user_id
     else:
@@ -43,7 +44,7 @@ async def create_token_for_uid(expiration_time_minutes=140):
     )
 
 
-async def store_access_token(redis_manager, token, user_id, expiration_time):
+def store_access_token(redis_manager, token, user_id, expiration_time):
     # Store the access token in Redis with the corresponding
     # user object ID and an expiration time
 
@@ -66,6 +67,7 @@ def Token(
     if token:
         uid = get_user_id(redis_manager, token)
         Logger.info(f"TOKEN: {token}\n", f"\\__ UID: {uid}")
+
         return uid
 
     existing_token = check_access_token_exists(redis_manager, user_id)
@@ -75,7 +77,10 @@ def Token(
 
     new_token = generate_token()
     store_access_token(
-        redis_manager, new_token, user_id, expiration_time_minutes
+        redis_manager=redis_manager,
+        token=new_token,
+        user_id=user_id,
+        expiration_time=expiration_time_minutes,
     )
 
     # Close the Redis connection

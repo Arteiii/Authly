@@ -4,11 +4,12 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from bson import ObjectId
-from core.db.mongo import MongoDBManager
-from core.hashing import Hasher
-from core.config import config
-from core.log import Logger
-from api.api_v1.authentication import token as TokenManager
+from authly.core.db.mongo import MongoDBManager
+from authly.core.hashing import Hasher
+from authly.core.config import config
+from authly.core.log import Logger
+from authly.api.api_v1.authentication import token as TokenManager
+from authly.api.api_v1.user.managment import UserManagment
 
 # def check_if_allowed():
 #     return
@@ -20,26 +21,25 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/user/token")
 class User(BaseModel):
     username: str
     email: Union[str, None] = None
-    full_name: Union[str, None] = None
-    disabled: Union[bool, None] = None
 
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    user = TokenManager.Token(token)
-    if not user:
+    uid = TokenManager.Token(token=token)
+    if not uid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return user
+    user_manager = UserManagment()
+    mongo_status, user_data = await user_manager.get_user_data(user_id=uid)
+    Logger.debug(user_data)
+    return user_data
 
 
 async def get_current_active_user(
     current_user: Annotated[User, Depends(get_current_user)]
 ):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
 

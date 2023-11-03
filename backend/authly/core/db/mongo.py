@@ -25,7 +25,7 @@ Date: 25/10/2023
 
 import motor.motor_asyncio
 import asyncio
-from core.log import Logger
+from authly.core.log import Logger
 
 
 class MongoDBManager:
@@ -232,7 +232,7 @@ class MongoDBManager:
     async def close_connection(self):
         try:
             self.client.close()
-            Logger.info("Connection closed")
+            Logger.debug("Connection closed")
             return True, "Connection closed"
         except Exception as e:
             Logger.error("Error occurred during connection closing", f"{e}")
