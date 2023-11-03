@@ -14,8 +14,8 @@ redis = RedisManager(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
 
 # Test function to check the Redis operations
-async def async_redis_operations():
-    test_results = {"TEST_TITLE": "Redis"}
+async def async_redis_operations() -> dict:
+    test_results = {}
 
     # Connect to Redis
     connected = redis.connect()
@@ -63,7 +63,7 @@ async def async_redis_operations():
         test_results["close_connection"] = "Failed"
         Logger.error("Failed to close Redis connection")
 
-    return test_results
+    return {"Redis": [test_results]}
 
 
 if __name__ == "__main__":

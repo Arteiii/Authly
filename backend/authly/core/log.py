@@ -31,6 +31,20 @@ def banner(
     )
 
 
+def format_value(value):
+    value_upper = str(value).upper()
+    if value_upper == "TRUE":
+        return f"{Fore.GREEN}{value_upper}{Fore.RESET}"
+    elif value_upper == "FALSE" or value_upper == "FAILED":
+        return f"{Fore.RED}{value_upper}{Fore.RESET}"
+    elif value_upper == "PASSED":
+        return f"{Fore.GREEN}{value_upper}{Fore.RESET}"
+    elif value_upper == "WARNING":
+        return f"{Fore.YELLOW}{value_upper}{Fore.RESET}"
+    else:
+        return str(value)
+
+
 class Logger:
     verbosity_level = "PRODUCTION"
 
@@ -172,46 +186,21 @@ class Logger:
             )
 
         if format and args and isinstance(args[0], dict):
-            max_key_length = max(len(str(key)) for key in args[0])
-            max_value_length = max(
-                len(str(value)) for value in args[0].values()
-            )
-            test_title = args[0]["TEST_TITLE"]
-            print(f"{COL}| {Fore.RESET}{test_title} Tests:")
-
             for key, value in args[0].items():
-                if key != "TEST_TITLE":
-                    value_upper = str(value).upper()
-                    if value_upper == "TRUE":
-                        value_str = (
-                            f"{Fore.GREEN}{value_upper}{Fore.RESET}".ljust(
-                                max_value_length + 10
-                            )
+                if isinstance(value, list):
+                    print(f"{COL}| {Fore.RESET}{key} Tests:")
+                    for sublist in value:
+                        max_item_length = max(
+                            len(str(sublist[item])) for item in sublist
                         )
-                    elif value_upper == "FALSE" or value_upper == "FAILED":
-                        value_str = (
-                            f"{Fore.RED}{value_upper}{Fore.RESET}".ljust(
-                                max_value_length + 10
+                        for item_key, item_value in sublist.items():
+                            print(
+                                f"{COL}|{Fore.RESET}   - \
+{str(format_value(item_value)).ljust(max_item_length)}   \
+{item_key.ljust(15)}"
                             )
-                        )
-                    elif value_upper == "PASSED":
-                        value_str = (
-                            f"{Fore.GREEN}{value_upper}{Fore.RESET}".ljust(
-                                max_value_length + 10
-                            )
-                        )
-                    elif value_upper == "WARNING":
-                        value_str = (
-                            f"{Fore.YELLOW}{value_upper}{Fore.RESET}".ljust(
-                                max_value_length + 10
-                            )
-                        )
-                    else:
-                        value_str = str(value).ljust(max_value_length + 10)
-                    print(
-                        f"{COL}|{Fore.RESET}          \
-{str(key).ljust(max_key_length)}     {value_str}"
-                    )
+                else:
+                    print(f"{COL}| {Fore.RESET}{key}: {format_value(value)}")
 
         else:
             for arg in args[0:]:

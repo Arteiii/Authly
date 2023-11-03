@@ -7,8 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from authly.tests.redis_test import async_redis_operations
-from authly.tests.mongo_test import async_mongo_operations
+from authly.core.status.redis_test import async_redis_operations
+from authly.core.status.mongo_test import async_mongo_operations
 
 Debug = True
 
@@ -56,8 +56,16 @@ app.include_router(api_main_router, prefix=config.API.API_ROUTE)
 
 # test dbs
 async def tests():
-    Logger.tests(await async_redis_operations())
-    Logger.tests(await async_mongo_operations())
+    tasks = [async_mongo_operations(), async_redis_operations()]
+    results = await asyncio.gather(*tasks)
+
+    combined_results = {}
+    for result in results:
+        combined_results.update(result)
+
+    print(combined_results)
+
+    Logger.tests(combined_results)
 
 
 async def main():

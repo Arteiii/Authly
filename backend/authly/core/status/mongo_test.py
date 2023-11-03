@@ -16,16 +16,16 @@ mongo = MongoDBManager(
 
 
 # Test function to check the MongoDB operations
-async def async_mongo_operations():
-    test_results = {"TEST_TITLE": "MongoDB"}
+async def async_mongo_operations() -> dict:
+    test_results = {}
 
     # Connect to MongoDB
     connected = await mongo.client.server_info()
     if connected:
         test_results["connection"] = "Passed"
     if not connected:
-        Logger.critical("Failed to connect to MongoDB:", connected)
-        return test_results
+        Logger.error("Failed to connect to MongoDB:", connected)
+        test_results["connection"] = "Failed"
 
     # Perform a write operation
     data = {"example_key": "example_value", "timestamp": datetime.now()}
@@ -83,7 +83,7 @@ async def async_mongo_operations():
         test_results["close_connection"] = "Failed"
         Logger.error("Failed to close MongoDB connection")
 
-    return test_results
+    return {"MongoDB": [test_results]}
 
 
 if __name__ == "__main__":
