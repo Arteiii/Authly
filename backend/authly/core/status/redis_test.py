@@ -1,8 +1,8 @@
 import asyncio
 
-from authly.core.db.redis import RedisManager
-from authly.core.config import config
-from authly.core.log import Logger
+from backend.authly.core.db.redis import RedisManager
+from backend.authly.core.config import config
+from backend.authly.core.log import Logger
 
 REDIS_HOST = config.RedisdbSettings.REDIS_HOST
 REDIS_PORT = config.RedisdbSettings.REDIS_PORT

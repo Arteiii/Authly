@@ -1,6 +1,6 @@
-from authly.api.api_v1.key.generation import generate_keys_with_format
-from authly.core.db.mongo import MongoDBManager
-from authly.core.config import config
+from backend.authly.api.api_v1.key.generation import generate_keys_with_format
+from backend.authly.core.db.mongo import MongoDBManager
+from backend.authly.core.config import config
 import datetime
 
 

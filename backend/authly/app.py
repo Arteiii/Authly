@@ -1,16 +1,16 @@
 import asyncio
-from authly.api.api_router import api_main_router
-from authly.core.config import config
-from authly.core.log import Logger
+from backend.authly.api.api_router import api_main_router
+from backend.authly.core.config import config
+from backend.authly.core.log import Logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from authly.core.status.redis_test import async_redis_operations
-from authly.core.status.mongo_test import async_mongo_operations
+from backend.authly.core.status.redis_test import async_redis_operations
+from backend.authly.core.status.mongo_test import async_mongo_operations
 
-Debug = True
+Debug = config.Debug_Authly.DEBUG
 
 origins = [
     "*"

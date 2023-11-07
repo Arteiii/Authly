@@ -4,12 +4,12 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from bson import ObjectId
-from authly.core.db.mongo import MongoDBManager
-from authly.core.hashing import Hasher
-from authly.core.config import config
-from authly.core.log import Logger
-from authly.api.api_v1.authentication import token as TokenManager
-from authly.api.api_v1.user.managment import UserManagment
+from backend.authly.core.db.mongo import MongoDBManager
+from backend.authly.core.hashing import Hasher
+from backend.authly.core.config import config
+from backend.authly.core.log import Logger
+from backend.authly.api.api_v1.authentication import token as TokenManager
+from backend.authly.api.api_v1.user.managment import UserManagment
 
 # def check_if_allowed():
 #     return

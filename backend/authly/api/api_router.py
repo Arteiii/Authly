@@ -3,9 +3,9 @@ routes for different api versions
 """
 
 
-from authly.core.log import Logger
-from authly.api.api_v1.api import api_router as api_v1
-from authly.core.config import config
+from backend.authly.core.log import Logger
+from backend.authly.api.api_v1.api import api_router as api_v1
+from backend.authly.core.config import config
 from fastapi import APIRouter
 
 API_ROUTE = config.API.API_ROUTE

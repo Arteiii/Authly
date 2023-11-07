@@ -1,5 +1,5 @@
-from authly.api.api_v1.user.user import app as user
-from authly.api.api_v1.key.api import app as key
+from backend.authly.api.api_v1.user.user import app as user
+from backend.authly.api.api_v1.key.api import app as key
 from fastapi import APIRouter
 
 api_router = APIRouter()

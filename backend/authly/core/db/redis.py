@@ -1,6 +1,6 @@
 import redis
 
-from authly.core.log import Logger
+from backend.authly.core.log import Logger
 
 
 class RedisManager:

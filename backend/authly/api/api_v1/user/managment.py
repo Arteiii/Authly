@@ -5,10 +5,10 @@ from email_validator import EmailNotValidError, validate_email
 
 
 from pydantic import EmailStr
-from authly.core.object_id import convert_object_id_to_str
-from authly.core.db.mongo import MongoDBManager
-from authly.core.config import config
-from authly.core.log import Logger
+from backend.authly.core.object_id import convert_object_id_to_str
+from backend.authly.core.db.mongo import MongoDBManager
+from backend.authly.core.config import config
+from backend.authly.core.log import Logger
 
 
 class UserManagment:

@@ -25,7 +25,7 @@ Date: 25/10/2023
 
 import motor.motor_asyncio
 import asyncio
-from authly.core.log import Logger
+from backend.authly.core.log import Logger
 
 
 class MongoDBManager:

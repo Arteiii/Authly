@@ -1,8 +1,8 @@
 import asyncio
 from datetime import datetime
-from authly.core.db.mongo import MongoDBManager
-from authly.core.config import config
-from authly.core.log import Logger
+from backend.authly.core.db.mongo import MongoDBManager
+from backend.authly.core.config import config
+from backend.authly.core.log import Logger
 
 MONGODB_URL = config.MongodbSettings.MONGODB_URL
 DB_NAME = f"{config.MongodbSettings.MONGODB_NAME}TESTER"

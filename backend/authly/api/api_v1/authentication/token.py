@@ -1,8 +1,8 @@
 import random
 import string
-from authly.core.db.redis import RedisManager
-from authly.core.config import config
-from authly.core.log import Logger
+from backend.authly.core.db.redis import RedisManager
+from backend.authly.core.config import config
+from backend.authly.core.log import Logger
 
 # follow the instructions on how to install redis
 # https://redis.io/docs/install/install-redis/
