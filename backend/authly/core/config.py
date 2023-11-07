@@ -7,7 +7,7 @@ import os
 import json
 from enum import Enum
 from pydantic_settings import BaseSettings
-from authly.core.log import Logger
+from backend.authly.core.log import Logger
 
 
 class HashingAlgorithmTypes(str, Enum):
@@ -40,7 +40,8 @@ class LoggingSettings(BaseSettings):
     LOG_FILE_PATH: str = "app.log"
 
 
-class Debug(BaseSettings):
+class Debug_Authly(BaseSettings):
+    DEBUG: bool = False
     LoggingSettings: LoggingSettings
 
 
@@ -77,7 +78,7 @@ class API_V2(BaseSettings):
 
 class API(BaseSettings):
     """
-    Configuration settings for the authly.api.
+    Configuration settings for the backend.authly.api.
 
     Attributes:
         API_ROUTE (str):\
@@ -281,7 +282,7 @@ class AppConfig(BaseSettings):
 
     Attributes:
         API (API):\
-            Configuration settings for the authly.api.
+            Configuration settings for the backend.authly.api.
         PasswordConfig (PasswordConfig):\
             Configuration settings for password hashing and policies.
         MongodbSettings (MongodbSettings):\
@@ -290,7 +291,7 @@ class AppConfig(BaseSettings):
             Configuration settings for the session manager.
     """
 
-    Debug: Debug
+    Debug_Authly: Debug_Authly
     API: API
     PasswordConfig: PasswordConfig
     MongodbSettings: MongodbSettings
@@ -326,4 +327,11 @@ except json.JSONDecodeError as e:
 except Exception as e:
     Logger.error(f"An unexpected error occurred: {e}")
 
-config = AppConfig(**config_data)  # Add your Pydantic model here
+try:
+    config = AppConfig(**config_data)
+
+except Exception as e:
+    Logger.error(
+        "An error occurred while parsing the configuration data:",
+        f"Error details: {e}",
+    )

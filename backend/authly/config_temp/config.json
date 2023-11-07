@@ -1,5 +1,6 @@
 {
-  "Debug": {
+  "Debug_Authly": {
+    "DEBUG": false,
     "LoggingSettings": {
       "LOG_LEVEL": "DEBUG",
       "LOG_FILE_PATH": "app.log"
