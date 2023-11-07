@@ -10,7 +10,7 @@ application = "Authly"
 
 
 def footer(COL: str = Fore.WHITE):
-    print(f"{COL}|> " + "-" * 50 + f"{Fore.RESET}")
+    print(f"{COL}|> " + "-" * 50 + f"{Fore.RESET}\n")
 
 
 def banner(
@@ -70,9 +70,11 @@ class Logger:
                 time=current_time,
             )
         for arg in args[0:]:
-            print(f"{COL}|{Fore.RESET} " + str(arg))
+            print(f"{COL}|{Fore.RESET}  {str(arg)}")
         if len(args) > 1:
             footer(COL)
+        if len(args) <= 1:
+            print("\n")
 
     @staticmethod
     def warning(*args):
@@ -92,9 +94,11 @@ class Logger:
                 time=current_time,
             )
         for arg in args[0:]:
-            print(f"{COL}|{Fore.RESET} " + str(arg))
+            print(f"{COL}|{Fore.RESET}  {str(arg)}")
         if len(args) > 1:
             footer(COL)
+        if len(args) <= 1:
+            print("\n")
 
     @staticmethod
     def error(*args):
@@ -115,9 +119,11 @@ class Logger:
             )
 
         for arg in args[0:]:
-            print(f"{COL}|{Fore.RESET} " + str(arg))
+            print(f"{COL}|{Fore.RESET}  {str(arg)}")
         if len(args) > 1:
             footer(COL)
+        if len(args) <= 1:
+            print("\n")
 
     @staticmethod
     def critical(*args):
@@ -137,9 +143,11 @@ class Logger:
                 time=current_time,
             )
         for arg in args[0:]:
-            print(f"{COL}|{Fore.RESET} " + str(arg))
+            print(f"{COL}|{Fore.RESET}  {str(arg)}")
         if len(args) > 1:
             footer(COL)
+        if len(args) <= 1:
+            print("\n")
         sys.exit(1)
 
     @staticmethod
@@ -204,7 +212,7 @@ class Logger:
 
         else:
             for arg in args[0:]:
-                print(f"{COL}|{Fore.RESET}  " + str(arg))
+                print(f"{COL}|{Fore.RESET}  {str(arg)}")
 
         if len(args) > 1 or (
             args and isinstance(args[0], dict) and len(args[0]) > 1

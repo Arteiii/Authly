@@ -4,8 +4,17 @@ import os
 import subprocess
 import json
 import shutil
+import logging
+from datetime import datetime
+import time
+import sys
+
 
 base_path = os.path.dirname(os.path.abspath(__file__))
+
+
+def clear_console():
+    os.system("cls" if os.name == "nt" else "clear")
 
 
 def get_subfiles(directory_path):
@@ -22,11 +31,14 @@ def clean_pycache(directory):
     """
     Clean all __pycache__ directories in the specified directory.
     """
+    deleted_directories = []
     for root, dirs, _ in os.walk(directory):
         for d in dirs:
             if d == "__pycache__":
                 pycache_path = os.path.join(root, d)
                 shutil.rmtree(pycache_path)
+                deleted_directories.append(pycache_path)
+    return deleted_directories
 
 
 def install_dependencies(module_directory):
@@ -53,9 +65,10 @@ def check_dependencies():
             importlib.import_module(dependency)
         except ImportError:
             raise ImportError(
-                f"The dependency {dependency} is not installed or not reachable."
+                f"The dependency {dependency}"
+                "is not installed or not reachable."
             )
-        print(dependency)
+        logging.info(f"{dependency}")
 
 
 def check_new_files(directory, expected_hashes):
@@ -72,6 +85,29 @@ def check_new_files(directory, expected_hashes):
     return new_files
 
 
+def remove_missing_files(expected_files):
+    missing_files = [
+        file_path
+        for file_path in expected_files
+        if not os.path.exists(os.path.join(base_path, file_path))
+    ]
+    if missing_files:
+        print("Missing files found:")
+        for f in missing_files:
+            print(f)
+
+        user_input = input(
+            "Do you want to remove all missing files from the expected files?"
+            "(y/n): "
+        )
+        if user_input.lower() == "y":
+            for f in missing_files:
+                expected_files.pop(f, None)
+                logging.info(f"Removed {f} from expected files")
+        else:
+            print("Skipping removal of missing files.")
+
+
 def check_existing_files(expected_files):
     """
     Check existing files against their expected hashes.
@@ -82,19 +118,31 @@ def check_existing_files(expected_files):
             with open(full_path, "rb") as file:
                 file_hash = hashlib.sha256(file.read()).hexdigest()
                 if file_hash != expected_hash:
+                    print(
+                        f"{Fore.YELLOW}Hash mismatch{Style.RESET_ALL}"
+                        f"{Fore.YELLOW}for {filepath}{Style.RESET_ALL}. "
+                    )
                     user_input = input(
-                        f"Hash mismatch for {filepath}. "
                         "Do you want to update the hash? (y/n): "
                     )
                     if user_input.lower() == "y":
                         expected_files[filepath] = file_hash
+                        logging.info
                         print(f"Hash updated for {filepath}.")
                     else:
+                        logging.info(f"Skipping {filepath} hash update")
                         print(f"Skipping {filepath} hash update.")
                 else:
-                    print(f"Hash match for {filepath}.")
+                    logging.info(f"Hash match for: {filepath}")
+                    print(
+                        f"{Fore.GREEN}Hash match for "
+                        f"{Fore.GREEN}{filepath}{Style.RESET_ALL}."
+                    )
         else:
-            print(f"File {filepath} does not exist.")
+            logging.error(f"File {filepath} does not exist.")
+            print(
+                f"{Fore.RED}File {filepath} does not exist.{Style.RESET_ALL}"
+            )
 
 
 def get_file_hash(file_path):
@@ -106,8 +154,22 @@ def get_file_hash(file_path):
 
 
 ############################################################
-#                     validate authly                      #
+#                         setup                            #
 ############################################################
+
+log_directory = os.path.join(base_path, "log")
+os.makedirs(log_directory, exist_ok=True)
+
+log_file = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + "_checks.log"
+log_file_path = os.path.join(log_directory, log_file)
+
+
+logging.basicConfig(
+    filename=log_file_path,
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+
 
 module_directory = os.path.dirname(__file__)
 
@@ -115,37 +177,54 @@ install_dependencies(module_directory)
 
 check_dependencies()
 
+
+from colorama import Fore, Style
+
+
 directory_path = os.path.join(base_path, "authly")
 
-print(f"working directory: {directory_path}")
 
-clean_pycache(directory_path)
-print("__pycache__ directories cleaned")
+############################################################
+#                      clean pycache                       #
+############################################################
+
+cleaned_directories = clean_pycache(directory_path)
+print(f"{Fore.BLUE}Deleted pycache directories:{Style.RESET_ALL}")
+for d in cleaned_directories:
+    logging.info(f"Removed: {d}")
+    print(f"{Fore.RED}{d}{Style.RESET_ALL}")
+
+
+############################################################
+#               get subfiles & compare hash                #
+############################################################
+
 
 subfiles = get_subfiles(directory_path)
-for f in subfiles:
-    print(f)
-
 
 if os.path.exists(os.path.join(base_path, "hashes.json")):
     with open(os.path.join(base_path, "hashes.json"), "r") as file:
         expected_files = json.load(file)
 else:
+    logging.error("hashes.json not found")
     expected_files = {}
 
 new_files = check_new_files(directory_path, expected_files)
 if new_files:
     print("New files found:")
     for f in new_files:
+        logging.info(f"new file: {f}")
         print(f)
 
     user_input = input(
         "Do you want to add all new files to expected files? (a/n): "
     )
     if user_input.lower() == "a":
+        logging.info(f"user added all new files ({user_input})")
         for f in new_files:
             file_hash = get_file_hash(f)
             expected_files[f] = file_hash
+            logging.info(f"Added {f} with hash {file_hash} to expected files")
             print(f"Added {f} with hash {file_hash} to expected files.")
     else:
         for f in new_files:
@@ -155,10 +234,31 @@ if new_files:
             if user_input.lower() == "y":
                 file_hash = get_file_hash(f)
                 expected_files[f] = file_hash
+                logging.info(
+                    f"Added {f} with hash {file_hash} to expected files"
+                )
                 print(f"Added {f} with hash {file_hash} to expected files.")
 
 check_existing_files(expected_files)
 
+remove_missing_files(expected_files)
 
 with open("hashes.json", "w") as file:
     json.dump(expected_files, file, indent=4)
+
+clear_console()
+
+print(
+    f"""{Fore.MAGENTA}
+ ________  ___  ___  _________  ___  ___  ___           ___    ___ 
+|\   __  \|\  \|\  \|\___   ___\\  \|\  \|\  \         |\  \  /  /|
+\ \  \|\  \ \  \\\  \|___ \  \_\ \  \\\  \ \  \        \ \  \/  / /
+ \ \   __  \ \  \\\  \   \ \  \ \ \   __  \ \  \        \ \    / / 
+  \ \  \ \  \ \  \\\  \   \ \  \ \ \  \ \  \ \  \____    \/  /  /  
+   \ \__\ \__\ \_______\   \ \__\ \ \__\ \__\ \_______\__/  / /    
+    \|__|\|__|\|_______|    \|__|  \|__|\|__|\|_______|\___/ /     
+                                                      \|___|/      
+{Fore.RESET} \n"""
+)
+
+print(f"{Fore.BLUE}check: {log_file_path} for details{Fore.RESET}\n \n")
