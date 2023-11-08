@@ -7,7 +7,7 @@ import os
 import json
 from enum import Enum
 from pydantic_settings import BaseSettings
-from backend.authly.core.log import Logger
+from authly.core.log import Logger
 
 
 class HashingAlgorithmTypes(str, Enum):
@@ -299,39 +299,47 @@ class AppConfig(BaseSettings):
     SessionManagerSettings: SessionManagerSettings
 
 
-try:
-    # Get the directory of the current script or module
-    script_directory = os.path.dirname(os.path.realpath(__file__))
+def check_file(file_name):
+    try:
+        # Get the directory of the current script or module
+        script_directory = os.path.dirname(os.path.realpath(__file__))
 
-    # Move up one directory to reach the parent directory
-    parent_directory = os.path.abspath(
-        os.path.join(script_directory, os.pardir)
-    )
+        # Move up one directory to reach the parent directory
+        parent_directory = os.path.abspath(
+            os.path.join(script_directory, os.pardir)
+        )
 
-    # Construct the relative path to the JSON file in the parent directory
-    json_file_path = os.path.join(
-        parent_directory, "config_temp", "config.json"
-    )
+        # Construct the relative path to the JSON file in the parent directory
+        json_file_path = os.path.join(
+            parent_directory, "config_temp", file_name
+        )
 
-    Logger.info("JSON file path:", f"{json_file_path}")
+        Logger.info("JSON file path:", f"{json_file_path}")
 
-    # Load JSON file
-    with open(json_file_path, encoding="utf-8") as f:
-        config_data = json.load(f)
-        # Parse JSON into Pydantic model
+        # Load JSON file
+        with open(json_file_path, encoding="utf-8") as f:
+            data = json.load(f)
+        return data
 
-except FileNotFoundError as e:
-    Logger.error(f"File not found error: {e}")
-except json.JSONDecodeError as e:
-    Logger.error(f"JSON decoding error: {e}")
-except Exception as e:
-    Logger.error(f"An unexpected error occurred: {e}")
+    except FileNotFoundError as e:
+        Logger.error(f"File not found error: {e}")
+    except json.JSONDecodeError as e:
+        Logger.error(f"JSON decoding error: {e}")
+    except Exception as e:
+        Logger.error(f"An unexpected error occurred: {e}")
 
-try:
-    config = AppConfig(**config_data)
 
-except Exception as e:
-    Logger.error(
-        "An error occurred while parsing the configuration data:",
-        f"Error details: {e}",
-    )
+def validate_config(data):
+    try:
+        return_data = AppConfig(**data)
+        return return_data
+
+    except Exception as e:
+        Logger.error(
+            "An error occurred while parsing the configuration data:",
+            f"Error details: {e}",
+        )
+
+
+config_data = check_file("config.json")
+application_config = validate_config(config_data)

@@ -25,7 +25,7 @@ Date: 25/10/2023
 
 import motor.motor_asyncio
 import asyncio
-from backend.authly.core.log import Logger
+from authly.core.log import Logger
 
 
 class MongoDBManager:
@@ -99,7 +99,9 @@ class MongoDBManager:
                     Logger.debug("Document found", f"{result}")
                     return True, result
                 else:
-                    Logger.debug("No document found with the given query")
+                    Logger.debug(
+                        "No document found with the given query:", f"{query}"
+                    )
                     return False, result
             except Exception as e:
                 Logger.error(

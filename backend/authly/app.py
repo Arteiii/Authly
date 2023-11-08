@@ -1,21 +1,22 @@
 import asyncio
-from backend.authly.api.api_router import api_main_router
-from backend.authly.core.config import config
-from backend.authly.core.log import Logger
+from authly.api.api_router import api_main_router
+from authly.core.config import application_config
+from authly.core.log import Logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from backend.authly.core.status.redis_test import async_redis_operations
-from backend.authly.core.status.mongo_test import async_mongo_operations
+from authly.core.status.redis_status import async_redis_operations
+from authly.core.status.mongo_status import async_mongo_operations
 
-Debug = config.Debug_Authly.DEBUG
+Debug = application_config.Debug_Authly.DEBUG
 
 origins = [
     "*"
 ]  # list of origins which are allowed to make requests to the api
 # (default: "*")
+
 
 app = FastAPI()
 
@@ -51,7 +52,7 @@ else:
     )  # Replace "*" with your trusted hosts
 
 # Include the API router
-app.include_router(api_main_router, prefix=config.API.API_ROUTE)
+app.include_router(api_main_router, prefix=application_config.API.API_ROUTE)
 
 
 # test dbs

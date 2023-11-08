@@ -1,15 +1,15 @@
 import random
 import string
-from backend.authly.core.db.redis import RedisManager
-from backend.authly.core.config import config
-from backend.authly.core.log import Logger
+from authly.core.db.redis_crud import RedisManager
+from authly.core.config import application_config
+from authly.core.log import Logger
 
 # follow the instructions on how to install redis
 # https://redis.io/docs/install/install-redis/
 
-Redis_DB = config.RedisdbSettings.REDIS_DB
-Redis_Port = config.RedisdbSettings.REDIS_PORT
-Redis_Host = config.RedisdbSettings.REDIS_HOST
+Redis_DB = application_config.RedisdbSettings.REDIS_DB
+Redis_Port = application_config.RedisdbSettings.REDIS_PORT
+Redis_Host = application_config.RedisdbSettings.REDIS_HOST
 
 
 def generate_token():
@@ -59,16 +59,18 @@ def Token(
     db: str = Redis_DB,
     port: int = Redis_Port,
     host: str = Redis_Host,
-    expiration_time_minutes: int = 140,
-):
+    expiration_time_minutes: int = 999999,
+) -> tuple[bool, dict]:
     redis_manager = RedisManager(db=db, port=port, host=host)
     redis_manager.connect()
 
     if token:
         uid = get_user_id(redis_manager, token)
-        Logger.info(f"TOKEN: {token}\n", f"\\__ UID: {uid}")
+        if uid != "None":
+            Logger.info(f"TOKEN: {token}", f"\\__ UID: {uid}")
 
-        return uid
+            return True, uid
+        return False, "invalid uid"
 
     existing_token = check_access_token_exists(redis_manager, user_id)
 
@@ -86,4 +88,4 @@ def Token(
     # Close the Redis connection
     redis_manager.close()
 
-    return new_token
+    return True, new_token

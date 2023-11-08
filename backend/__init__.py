@@ -6,8 +6,6 @@ import json
 import shutil
 import logging
 from datetime import datetime
-import time
-import sys
 
 
 base_path = os.path.dirname(os.path.abspath(__file__))
@@ -246,19 +244,23 @@ remove_missing_files(expected_files)
 with open("hashes.json", "w") as file:
     json.dump(expected_files, file, indent=4)
 
-clear_console()
+print("\n")
 
+clear_console()
 print(
-    f"""{Fore.MAGENTA}
- ________  ___  ___  _________  ___  ___  ___           ___    ___ 
-|\   __  \|\  \|\  \|\___   ___\\  \|\  \|\  \         |\  \  /  /|
-\ \  \|\  \ \  \\\  \|___ \  \_\ \  \\\  \ \  \        \ \  \/  / /
- \ \   __  \ \  \\\  \   \ \  \ \ \   __  \ \  \        \ \    / / 
-  \ \  \ \  \ \  \\\  \   \ \  \ \ \  \ \  \ \  \____    \/  /  /  
-   \ \__\ \__\ \_______\   \ \__\ \ \__\ \__\ \_______\__/  / /    
-    \|__|\|__|\|_______|    \|__|  \|__|\|__|\|_______|\___/ /     
-                                                      \|___|/      
-{Fore.RESET} \n"""
+    Fore.MAGENTA,
+    r"""
+ ______           __    __       ___
+/\  _  \         /\ \__/\ \     /\_ \
+\ \ \L\ \  __  __\ \ ,_\ \ \___ \//\ \    __  __
+ \ \  __ \/\ \/\ \\ \ \/\ \  _ `\ \ \ \  /\ \/\ \
+  \ \ \/\ \ \ \_\ \\ \ \_\ \ \ \ \ \_\ \_\ \ \_\ \
+   \ \_\ \_\ \____/ \ \__\\ \_\ \_\/\____\\/`____ \
+    \/_/\/_/\/___/   \/__/ \/_/\/_/\/____/ `/___/> \
+                                              /\___/
+                                              \/__/
+    """,
+    Fore.RESET,
 )
 
 print(f"{Fore.BLUE}check: {log_file_path} for details{Fore.RESET}\n \n")

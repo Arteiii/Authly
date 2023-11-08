@@ -1,12 +1,12 @@
 import asyncio
 
-from backend.authly.core.db.redis import RedisManager
-from backend.authly.core.config import config
-from backend.authly.core.log import Logger
+from authly.core.db.redis_crud import RedisManager
+from authly.core.config import application_config
+from authly.core.log import Logger
 
-REDIS_HOST = config.RedisdbSettings.REDIS_HOST
-REDIS_PORT = config.RedisdbSettings.REDIS_PORT
-REDIS_DB = config.RedisdbSettings.REDIS_DB
+REDIS_HOST = application_config.RedisdbSettings.REDIS_HOST
+REDIS_PORT = application_config.RedisdbSettings.REDIS_PORT
+REDIS_DB = application_config.RedisdbSettings.REDIS_DB
 
 
 # Create instances of the database managers
@@ -66,6 +66,10 @@ async def async_redis_operations() -> dict:
     return {"Redis": [test_results]}
 
 
+async def print_results():
+    Logger.tests(await async_redis_operations())
+
+
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(async_redis_operations())
+    loop.run_until_complete(print_results())

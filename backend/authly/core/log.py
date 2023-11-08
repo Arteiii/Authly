@@ -46,7 +46,7 @@ def format_value(value):
 
 
 class Logger:
-    verbosity_level = "PRODUCTION"
+    verbosity_level = "DEV"
 
     @staticmethod
     def set_verbosity_level(level):
@@ -152,7 +152,7 @@ class Logger:
 
     @staticmethod
     def debug(*args):
-        if Logger.verbosity_level == "DEVELOPMENT":
+        if Logger.verbosity_level == "DEV":
             NAME = "DEBUG"
             COL = Fore.CYAN
             current_time = datetime.datetime.now().strftime(

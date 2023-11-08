@@ -1,4 +1,4 @@
-async def convert_duration_to_minutes(duration_str):
+def convert_duration_to_minutes(duration_str):
     """
     Convert the input duration string to the corresponding\
         duration in minutes asynchronously.

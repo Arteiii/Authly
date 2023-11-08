@@ -1,15 +1,21 @@
-from typing import Annotated, Union
+from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel
-from bson import ObjectId
-from backend.authly.core.db.mongo import MongoDBManager
-from backend.authly.core.hashing import Hasher
-from backend.authly.core.config import config
-from backend.authly.core.log import Logger
-from backend.authly.api.api_v1.authentication import token as TokenManager
-from backend.authly.api.api_v1.user.managment import UserManagment
+from fastapi.security import (
+    OAuth2PasswordBearer,
+)  # , OAuth2PasswordRequestForm
+
+from authly.core.db.mongo_crud import MongoDBManager
+from authly.core.hashing import Hasher
+from authly.core.config import application_config
+from authly.core.log import Logger
+from authly.api.api_v1.authentication import token as TokenManager
+from authly.api.api_v1.user.managment import UserManagment
+import authly.api.api_v1.user.model as UserModel
+from authly.core.object_id import convert_object_id_to_str
+
+
+# from bson import ObjectId
 
 # def check_if_allowed():
 #     return
@@ -18,28 +24,38 @@ from backend.authly.api.api_v1.user.managment import UserManagment
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/user/token")
 
 
-class User(BaseModel):
-    username: str
-    email: Union[str, None] = None
+async def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)]
+) -> dict:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
+    (_, user_id) = TokenManager.Token(token=token)
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    uid = TokenManager.Token(token=token)
-    if not uid:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    if _ is False:
+        raise credentials_exception
+    if user_id is None:
+        raise credentials_exception
     user_manager = UserManagment()
-    mongo_status, user_data = await user_manager.get_user_data(user_id=uid)
-    Logger.debug(user_data)
-    return user_data
+
+    _, data = await user_manager.get_user_data(user_id)
+    Logger.info(data, type(data))
+    if _ is False:
+        Logger.error("error in get_current_user:", f"{_}")
+        raise HTTPException(status_code=500, detail="internal server issues")
+    return data
 
 
 async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)]
+    current_user: Annotated[UserModel.User, Depends(get_current_user)]
 ):
+    if current_user.get("disabled"):
+        Logger.error("error curretn user inactive:", f"{current_user}")
+        raise HTTPException(status_code=400, detail="Inactive user")
+
     return current_user
 
 
@@ -48,23 +64,22 @@ async def verify_password(userdata: dict, requested_pw: str):
     result = Hasher.verify_password(
         password=requested_pw, stored_hash=hashed_pw
     )
-    Logger.debug(f"verify_password resulkt: {result}")
+    Logger.debug(f"verify_password result: {result}")
     if not result:
         return False
     elif result:
         return True
 
 
-async def authenticate_user(id: str, password: str) -> tuple[bool, dict]:
+async def authenticate_user(email: str, password: str) -> tuple[bool, dict]:
     mongo_manager = MongoDBManager(
         collection_name="Users",
-        db_name=config.MongodbSettings.MONGODB_NAME,
-        db_url=config.MongodbSettings.MONGODB_URL,
+        db_name=application_config.MongodbSettings.MONGODB_NAME,
+        db_url=application_config.MongodbSettings.MONGODB_URL,
     )
 
-    bool, user = await mongo_manager.read_manager.find_one(
-        {"_id": ObjectId(id)}
-    )
+    bool, user = await mongo_manager.read_manager.find_one({"email": email})
+    user = convert_object_id_to_str(user)
 
     if not user:
         return False, None

@@ -5,9 +5,12 @@ from email_validator import EmailNotValidError, validate_email
 
 
 from pydantic import EmailStr
-from backend.authly.core.object_id import convert_object_id_to_str
-from backend.authly.core.db.mongo import MongoDBManager
-from backend.authly.core.config import config
+from backend.authly.core.object_id import (
+    convert_object_id_to_str,
+    convert_str_to_object_id,
+)
+from backend.authly.core.db.mongo_crud import MongoDBManager
+from backend.authly.core.config import application_config
 from backend.authly.core.log import Logger
 
 
@@ -15,8 +18,8 @@ class UserManagment:
     def __init__(
         self,
         collection: str = "Users",
-        db_name: str = config.MongodbSettings.MONGODB_NAME,
-        url: str = config.MongodbSettings.MONGODB_URL,
+        db_name: str = application_config.MongodbSettings.MONGODB_NAME,
+        url: str = application_config.MongodbSettings.MONGODB_URL,
     ):
         self.mongo_client = MongoDBManager(
             collection_name=collection,
@@ -25,7 +28,7 @@ class UserManagment:
         )
 
     async def create_user(
-        self, username: str, email: EmailStr, password: str, role: str
+        self, username: str, email: EmailStr, password: str, role: list | str
     ):
         current_time = datetime.now().isoformat()
 
@@ -34,7 +37,7 @@ class UserManagment:
             "username": username,
             "email": email,
             "password": password,
-            "role": role,
+            "role": [role],
             "disabled": False,
             "geo_location": "None",
             "username_history": [
@@ -179,7 +182,7 @@ class UserManagment:
         # Use a more efficient method to check which argument is provided
         if user_id:
             status, data = await self.mongo_client.read_manager.find_one(
-                query={"_id": user_id}
+                query={"_id": ObjectId(user_id)}
             )
             Logger.debug(
                 f"get_user_data - user_id (status): {status}",

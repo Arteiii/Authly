@@ -1,11 +1,11 @@
 import asyncio
 from datetime import datetime
-from backend.authly.core.db.mongo import MongoDBManager
-from backend.authly.core.config import config
-from backend.authly.core.log import Logger
+from authly.core.db.mongo_crud import MongoDBManager
+from authly.core.config import application_config
+from authly.core.log import Logger
 
-MONGODB_URL = config.MongodbSettings.MONGODB_URL
-DB_NAME = f"{config.MongodbSettings.MONGODB_NAME}TESTER"
+MONGODB_URL = application_config.MongodbSettings.MONGODB_URL
+DB_NAME = f"{application_config.MongodbSettings.MONGODB_NAME}TESTER"
 COLLECTION_NAME = "Test"
 
 
@@ -18,6 +18,7 @@ mongo = MongoDBManager(
 # Test function to check the MongoDB operations
 async def async_mongo_operations() -> dict:
     test_results = {}
+    Logger.set_verbosity_level(level="DEVELOPMENT")
 
     # Connect to MongoDB
     connected = await mongo.client.server_info()
@@ -86,6 +87,10 @@ async def async_mongo_operations() -> dict:
     return {"MongoDB": [test_results]}
 
 
+async def print_results():
+    Logger.tests(await async_mongo_operations())
+
+
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(async_mongo_operations())
+    loop.run_until_complete(print_results())

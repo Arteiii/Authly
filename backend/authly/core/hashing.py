@@ -13,10 +13,10 @@ Date: 24/10/2023
 
 import argon2
 import bcrypt
-from backend.authly.core.config import config
+from authly.core.config import application_config
 
-argon_config = config.PasswordConfig.ArgonHashingAlgorithm
-bcrypt_config = config.PasswordConfig.BcryptHashingAlgorithm
+argon_config = application_config.PasswordConfig.ArgonHashingAlgorithm
+bcrypt_config = application_config.PasswordConfig.BcryptHashingAlgorithm
 
 
 class Bcrypt:
@@ -122,7 +122,7 @@ class Hasher:
     def verify_password(
         password,
         stored_hash,
-        algorithm=config.PasswordConfig.HASHING_ALGORITHM,
+        algorithm=application_config.PasswordConfig.HASHING_ALGORITHM,
     ):
         """
         Verify a password against a stored hash\
@@ -147,7 +147,7 @@ class Hasher:
     @staticmethod
     def get_password_hash(
         password,
-        algorithm=config.PasswordConfig.HASHING_ALGORITHM,
+        algorithm=application_config.PasswordConfig.HASHING_ALGORITHM,
     ):
         """
         Hash a password using the specified hashing algorithm.

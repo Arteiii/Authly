@@ -1,6 +1,5 @@
 import redis
-
-from backend.authly.core.log import Logger
+from authly.core.log import Logger
 
 
 class RedisManager:
@@ -32,6 +31,9 @@ class RedisManager:
         try:
             if expiration:
                 self.redis_client.setex(key, expiration, value)
+                Logger.debug(
+                    "setex in redis:", f"{key}, {expiration}, {value}"
+                )
             else:
                 self.redis_client.set(key, value)
         except redis.RedisError as e:
@@ -42,6 +44,7 @@ class RedisManager:
     def get(self, key):
         try:
             result = self.redis_client.get(key)
+            Logger.debug("get in redis:", f"{key}")
             return result
         except redis.RedisError as e:
             Logger.error(f"Error getting value from Redis: {e}")
