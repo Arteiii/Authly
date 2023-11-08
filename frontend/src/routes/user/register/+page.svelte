@@ -1,0 +1,49 @@
+<script>
+  let username = "";
+  let email = "";
+  let password = "";
+  let registrationStatus = "";
+
+  async function registerUser() {
+    // Encode the password to base64
+    const passwordBase64 = btoa(password);
+    const userData = { username, email, password: passwordBase64 };
+
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/user/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (response.ok) {
+        registrationStatus = 'User registered successfully!';
+      } else {
+        registrationStatus = 'User registration failed. Please try again.';
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      registrationStatus = 'An error occurred while registering the user.';
+    }
+  }
+</script>
+
+<h1>Register User</h1>
+
+<label for="username">Username:</label>
+<input type="text" id="username" bind:value={username} />
+
+<label for="email">Email:</label>
+<input type="email" id="email" bind:value={email} />
+
+<label for="password">Password:</label>
+<input type="password" id="password" bind:value={password} />
+
+<button on:click={registerUser}>Register</button>
+
+{#if registrationStatus}
+  <p>{registrationStatus}</p>
+{/if}
+
