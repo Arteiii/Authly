@@ -2,6 +2,7 @@
   let fetchedData = null;
   let error = null;
 
+
   async function fetchData() {
     // Retrieve the authentication token from local storage
     const authToken = localStorage.getItem('authToken');
@@ -12,7 +13,7 @@
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/user/users/me/', {
+      const response = await fetch('http://192.168.178.58:8000/api/v1/user/users/me/', {
         headers: {
           'Authorization': `Bearer ${authToken}`,
         },
@@ -45,3 +46,22 @@
   <h2>Fetched Data</h2>
   <pre>{JSON.stringify(fetchedData, null, 2)}</pre>
 {/if}
+
+<style lang="postcss">
+  :global(html) {
+    --background-color: white;
+    --text-color: black;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(html) {
+      --background-color: black;
+      --text-color: white;
+    }
+  }
+
+  section {
+    background-color: var(--background-color);
+    color: var(--text-color);
+  }
+</style>
