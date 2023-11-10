@@ -10,7 +10,9 @@ REDIS_DB = application_config.RedisdbSettings.REDIS_DB
 
 
 # Create instances of the database managers
-redis = RedisManager(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+redis = RedisManager(
+    redis_host=REDIS_HOST, redis_port=REDIS_PORT, redis_db=REDIS_DB
+)
 
 
 # Test function to check the Redis operations

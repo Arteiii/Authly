@@ -11,17 +11,6 @@ def clear_console():
     os.system("cls" if os.name == "nt" else "clear")
 
 
-def clean_pycache(directory: str):
-    deleted_directories = []
-
-    for path in Path(directory).rglob("__pycache__"):
-        if path.is_dir():
-            path.rmdir()
-            deleted_directories.append(str(path))
-
-    return deleted_directories
-
-
 def check_dependencies():
     dependencies_to_check = [
         "colorama",
@@ -92,7 +81,8 @@ def check_existing_files(expected_files, col, Style, base_path):
                 file_hash = hashlib.sha256(file.read()).hexdigest()
                 if file_hash != expected_hash:
                     print(
-                        f"{col.YELLOW}Hash mismatch{Style.RESET_ALL} for {filepath}. "
+                        f"{col.YELLOW}Hash mismatch{Style.RESET_ALL}"
+                        f"for {filepath}. "
                     )
                     user_input = input(
                         "Do you want to update the hash? (y/n): "
@@ -153,14 +143,6 @@ def log_basic_config(path, base_path):
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
     return log_file_path
-
-
-def pycache_operations(path, Style, Fore):
-    cleaned_directories = clean_pycache(path)
-    print(f"{Fore.BLUE}Deleted pycache directories:{Style.RESET_ALL}")
-    for d in cleaned_directories:
-        logging.info(f"Removed: {d}")
-        print(f"{Fore.RED}{d}{Style.RESET_ALL}")
 
 
 def check_hash_change(directory_path, base_path):
@@ -229,7 +211,6 @@ def main():
     check_dependencies()
     from colorama import Fore, Style
 
-    pycache_operations(directory_path, Style, Fore)
     hash_operations(Fore, Style, directory_path, base_path)
 
     clear_console()
