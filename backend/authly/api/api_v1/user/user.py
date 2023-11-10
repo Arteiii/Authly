@@ -16,7 +16,7 @@ from authly.core.config import application_config
 from authly.core.hashing import Hasher
 from authly.api.api_v1.user.managment import UserManagment
 from authly.core.log import Logger
-
+from authly.core.log import LogLevel
 
 app = APIRouter()
 Mongo_URL = application_config.MongodbSettings.MONGODB_URL
@@ -48,7 +48,8 @@ async def hash_password(password) -> str:
 
     end_time = time.time()  # Record the end time
 
-    Logger.debug(
+    Logger.log(
+        LogLevel.DEBUG,
         f"using: {application_config.PasswordConfig.HASHING_ALGORITHM}",
         f"Hashed Password: {hashed}",
         f"Hashing Time: {end_time - start_time} seconds",
@@ -70,7 +71,7 @@ async def register_user(user_data: model.UserRegistration):
         hashed_password = await hash_password(password=user_data.password)
 
     except Exception as e:
-        Logger.error("Exception while hashing password", f"{e}")
+        Logger.log(LogLevel.ERROR, "Exception while hashing password", f"{e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     try:
@@ -82,11 +83,11 @@ async def register_user(user_data: model.UserRegistration):
         )
 
     except ValueError as ve:
-        Logger.error(f"Bad Request: {ve}")
+        Logger.log(LogLevel.ERROR, f"Bad Request: {ve}")
         raise HTTPException(status_code=400, detail="Bad Request")
 
     except Exception as e:
-        Logger.error("Exception while creating user", f"{e}")
+        Logger.log(LogLevel.ERROR, "Exception while creating user", f"{e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     finally:
@@ -109,9 +110,13 @@ async def delete_user(data: model.DeleteUser) -> model.DeleteUserResponse:
     )
 
     if not is_success:
-        Logger.debug("delete_user", f"{is_success}", f"{response}")
+        Logger.log(
+            LogLevel.DEBUG, "delete_user", f"{is_success}", f"{response}"
+        )
     else:
-        Logger.debug(f"{is_success}", f"{response}", f"{type(response)}")
+        Logger.log(
+            LogLevel.DEBUG, f"{is_success}", f"{response}", f"{type(response)}"
+        )
     return response
 
 
@@ -128,9 +133,13 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
         )
     _, new_token = token.Token(user_id=user.get("id"))
     if not _:
-        Logger.error("Exception while creating token", f"{_}({new_token})")
+        Logger.log(
+            LogLevel.ERROR,
+            "Exception while creating token",
+            f"{_}({new_token})",
+        )
         raise HTTPException(status_code=500, detail="Internal Server Error")
-    Logger.debug("New token:", new_token)
+    Logger.log(LogLevel.DEBUG, "New token:", new_token)
     return {"access_token": new_token, "token_type": "bearer"}
 
 
@@ -169,5 +178,5 @@ async def read_users_me(
 #         raise HTTPException(status_code=400, detail=f"Bad Request: {ve}")
 
 #     except Exception as e:
-#         Logger.error(f"Exception while creating user ({e})")
+#         Logger.log(LogLevel.ERROR, f"Exception while creating user ({e})")
 #         raise HTTPException(status_code=500, detail="Internal Server Error")

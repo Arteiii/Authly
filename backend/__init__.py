@@ -4,15 +4,27 @@ import os
 import json
 import logging
 from datetime import datetime
-import subprocess
+from pathlib import Path
+import shutil
 
 
-def clear_screen():
-    """
-    Clear the console screen.
-    """
-    command = "cls" if os.name == "nt" else "clear"
-    subprocess.run(command, shell=False)
+def clean_pycache(directory: str):
+    deleted_directories = []
+
+    for path in Path(directory).rglob("__pycache__"):
+        if path.is_dir():
+            shutil.rmtree(path)
+            deleted_directories.append(str(path))
+
+    return deleted_directories
+
+
+def pycache_operations(path, Style, Fore):
+    cleaned_directories = clean_pycache(path)
+    print(f"{Fore.BLUE}Deleted pycache directories:{Style.RESET_ALL}")
+    for d in cleaned_directories:
+        logging.info(f"Removed: {d}")
+        print(f"{Fore.RED}{d}{Style.RESET_ALL}")
 
 
 def check_dependencies():
@@ -64,7 +76,8 @@ def remove_missing_files(expected_files, base_path):
             print(f)
 
         user_input = input(
-            "Do you want to remove all missing files from the expected files? (y/n): "
+            "Do you want to remove all missing"
+            "files from the expected files? (y/n): "
         )
         if user_input.lower() == "y":
             for f in missing_files:
@@ -101,7 +114,8 @@ def check_existing_files(expected_files, col, Style, base_path):
                 else:
                     logging.info(f"Hash match for: {filepath}")
                     print(
-                        f"{col.GREEN}Hash match for {filepath}{Style.RESET_ALL}."
+                        f"{col.GREEN}Hash match for"
+                        f"{col.GREEN}{filepath}{Style.RESET_ALL}."
                     )
         else:
             logging.error(f"File {filepath} does not exist.")
@@ -116,22 +130,15 @@ def get_file_hash(file_path, base_path):
     return hasher.hexdigest()
 
 
-def print_logo(col):
-    print(
-        col.MAGENTA,
-        r"""
- ______           __    __       ___
-/\  _  \         /\ \__/\ \     /\_ \
-\ \ \L\ \  __  __\ \ ,_\ \ \___ \//\ \    __  __
- \ \  __ \/\ \/\ \\ \ \/\ \  _ `\ \ \ \  /\ \/\ \
-  \ \ \/\ \ \ \_\ \\ \ \_\ \ \ \ \ \_\ \_\ \ \_\ \
-   \ \_\ \_\ \____/ \ \__\\ \_\ \_\/\____\\/`____ \
-    \/_/\/_/\/___/   \/__/ \/_/\/_/\/____/ `/___/> \
-                                              /\___/
-                                              \/__/
-    """,
-        col.RESET,
-    )
+def print_logo(col: any, file_path: str = "./ascii_art.txt"):
+    try:
+        with open(file_path, "r") as file:
+            ascii_art = file.read()
+            print(f"{col}{ascii_art}")
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 def log_basic_config(path, base_path):
@@ -208,18 +215,17 @@ def main():
     module_directory = os.path.dirname(__file__)
     base_path = os.path.dirname(os.path.abspath(__file__))
 
-    log_file_path = log_basic_config(module_directory, base_path=base_path)
-
+    log_basic_config(module_directory, base_path=base_path)
     directory_path = os.path.join(base_path, "authly")
 
     check_dependencies()
     from colorama import Fore, Style
 
+    pycache_operations(directory_path, Style, Fore)
     hash_operations(Fore, Style, directory_path, base_path)
 
-    clear_screen()
-    print_logo(Fore)
-    print(f"{Fore.BLUE}check: {log_file_path} for details{Fore.RESET}\n \n")
+    print("\033c", end="")  # clear screen
+    print_logo(Fore.MAGENTA, f"{base_path}/ascii_art.txt")
 
 
 main()

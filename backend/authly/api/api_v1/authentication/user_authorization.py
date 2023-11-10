@@ -9,6 +9,7 @@ from authly.core.db.mongo_crud import MongoDBManager
 from authly.core.hashing import Hasher
 from authly.core.config import application_config
 from authly.core.log import Logger
+from authly.core.log import LogLevel
 from authly.api.api_v1.authentication import token as TokenManager
 from authly.api.api_v1.user.managment import UserManagment
 import authly.api.api_v1.user.model as UserModel
@@ -42,9 +43,9 @@ async def get_current_user(
     user_manager = UserManagment()
 
     _, data = await user_manager.get_user_data(user_id)
-    Logger.info(data, type(data))
+    Logger.log(LogLevel.INFO, data, type(data))
     if _ is False:
-        Logger.error("error in get_current_user:", f"{_}")
+        Logger.log(LogLevel.ERROR, "error in get_current_user:", f"{_}")
         raise HTTPException(status_code=500, detail="internal server issues")
     return data
 
@@ -53,7 +54,9 @@ async def get_current_active_user(
     current_user: Annotated[UserModel.User, Depends(get_current_user)]
 ):
     if current_user.get("disabled"):
-        Logger.error("error curretn user inactive:", f"{current_user}")
+        Logger.log(
+            LogLevel.ERROR, "error curretn user inactive:", f"{current_user}"
+        )
         raise HTTPException(status_code=400, detail="Inactive user")
 
     return current_user
@@ -64,7 +67,7 @@ async def verify_password(userdata: dict, requested_pw: str):
     result = Hasher.verify_password(
         password=requested_pw, stored_hash=hashed_pw
     )
-    Logger.debug(f"verify_password result: {result}")
+    Logger.log(LogLevel.DEBUG, f"verify_password result: {result}")
     if not result:
         return False
     elif result:

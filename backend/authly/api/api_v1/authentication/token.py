@@ -3,6 +3,7 @@ import string
 from authly.core.db.redis_crud import RedisManager
 from authly.core.config import application_config
 from authly.core.log import Logger
+from authly.core.log import LogLevel
 
 Redis_DB = application_config.RedisdbSettings.REDIS_DB
 Redis_Port = application_config.RedisdbSettings.REDIS_PORT
@@ -20,7 +21,7 @@ def check_access_token_exists(redis_manager, user_id):
 
 def get_user_id(redis_manager, token):
     user_id = redis_manager.get(token)
-    Logger.debug(user_id)
+    Logger.log(LogLevel.DEBUG, user_id)
     return user_id
 
 
@@ -51,7 +52,7 @@ def Token(
     if token:
         uid = get_user_id(redis_manager, token)
         if uid != "None":
-            Logger.info(f"TOKEN: {token}", f"\\__ UID: {uid}")
+            Logger.log(LogLevel.INFO, f"TOKEN: {token}", f"\\__ UID: {uid}")
             return True, uid
         return False, "invalid uid"
 

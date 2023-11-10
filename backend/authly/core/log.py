@@ -1,6 +1,7 @@
-import sys
 import datetime
 import inspect
+from enum import Enum, auto
+
 
 from colorama import init, Fore
 
@@ -45,7 +46,45 @@ def format_value(value):
         return str(value)
 
 
+def print_sublist(
+    COL,
+    item_value: str = None,
+    max_item_length: str = None,
+    item_key: str = None,
+):
+    print(
+        f"{COL}|{Fore.RESET}   - "
+        f"{str(format_value(item_value)).ljust(max_item_length)}"
+        f"   {item_key.ljust(15)}"
+    )
+
+
+class LogLevel(Enum):
+    INFO = auto()
+    WARNING = auto()
+    ERROR = auto()
+    CRITICAL = auto()
+    DEBUG = auto()
+    TESTS = auto()
+
+
 class Logger:
+    LOG_LEVEL_COLORS = {
+        LogLevel.INFO: "BLUE",
+        LogLevel.WARNING: "YELLOW",
+        LogLevel.ERROR: "MAGENTA",
+        LogLevel.CRITICAL: "RED",
+        LogLevel.DEBUG: "CYAN",
+        LogLevel.TESTS: "WHITE",
+    }
+    LOG_LEVEL_NAMES = {
+        LogLevel.INFO: "INFO",
+        LogLevel.WARNING: "WARNING",
+        LogLevel.ERROR: "ERROR",
+        LogLevel.CRITICAL: "CRITICAL ERROR",
+        LogLevel.DEBUG: "DEBUG",
+        LogLevel.TESTS: "TESTS",
+    }
     verbosity_level = "DEV"
 
     @staticmethod
@@ -53,12 +92,14 @@ class Logger:
         Logger.verbosity_level = level
 
     @staticmethod
-    def _log(level, *args):
-        NAME = level.upper()
-        COL = getattr(Fore, level)
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    def log(level: LogLevel = LogLevel.INFO, *args):
+        NAME = Logger.LOG_LEVEL_NAMES.get(level, "INFO")
+        color = Logger.LOG_LEVEL_COLORS.get(level, "WHITE")
+        COL = getattr(Fore, color)
+
         caller_frame = inspect.currentframe().f_back
         caller_info = inspect.getframeinfo(caller_frame)
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         if args:
             banner(
@@ -77,29 +118,7 @@ class Logger:
         if len(args) <= 1:
             print("\n")
 
-    @staticmethod
-    def info(*args):
-        Logger._log("BLUE", *args)
-
-    @staticmethod
-    def warning(*args):
-        Logger._log("YELLOW", *args)
-
-    @staticmethod
-    def error(*args):
-        Logger._log("MAGENTA", *args)
-
-    @staticmethod
-    def critical(*args):
-        Logger._log("RED", *args)
-        sys.exit(1)
-
-    @staticmethod
-    def debug(*args):
-        if Logger.verbosity_level == "DEV":
-            Logger._log("CYAN", *args)
-
-    def tests(*args, format=True):
+    def tests(*args, format: bool = True):
         NAME = "TESTS"
         COL = Fore.WHITE
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -125,10 +144,8 @@ class Logger:
                             len(str(sublist[item])) for item in sublist
                         )
                         for item_key, item_value in sublist.items():
-                            print(
-                                f"{COL}|{Fore.RESET}   - "
-                                f"{str(format_value(item_value)).ljust(max_item_length)}"
-                                f"   {item_key.ljust(15)}"
+                            print_sublist(
+                                COL, item_value, max_item_length, item_key
                             )
                 else:
                     print(f"{COL}| {Fore.RESET}{key}: {format_value(value)}")
@@ -149,37 +166,33 @@ class Logger:
 
 # Example usage of the custom_logger function
 if __name__ == "__main__":
-    Logger.debug(
+    Logger.log(
+        LogLevel.DEBUG,
         "This is the first line of the log.",
         "This is the second line of the log.",
         "This is the third line of the log.",
     )
-    Logger.error(
+    Logger.log(
+        LogLevel.ERROR,
         "This is the first line of the log.",
         "This is the second line of the log.",
         "This is the third line of the log.",
     )
-    Logger.warning(
+    Logger.log(
+        LogLevel.WARNING,
         "This is the first line of the log.",
         "This is the second line of the log.",
         "This is the third line of the log.",
     )
-    Logger.info(
+    Logger.log(
+        LogLevel.INFO,
         "This is the first line of the log.",
         "This is the second line of the log.",
         "This is the third line of the log.",
     )
-    Logger.critical(
+    Logger.log(
+        LogLevel.CRITICAL,
         "This is the first line of the log.",
         "This is the second line of the log.",
         "This is the third line of the log.",
     )
-
-
-# mongo schema:
-# {
-#   timestamp: Date, // Timestamp of the logged event
-#   level: String, // Log level, e.g., INFO, DEBUG, ERROR, etc.
-#   message: String, // Description of the logged event
-#   metadata: Object // Additional metadata related to the event
-# }

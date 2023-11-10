@@ -2,6 +2,8 @@ import asyncio
 from authly.api.api_router import api_main_router
 from authly.core.config import application_config
 from authly.core.log import Logger
+from authly.core.log import LogLevel
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -21,7 +23,7 @@ origins = [
 app = FastAPI()
 
 if Debug is True:
-    Logger.warning("Security Middleware Disabled for debugging")
+    Logger.log(LogLevel.WARNING, "Security Middleware Disabled for debugging")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

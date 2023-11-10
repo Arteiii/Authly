@@ -3,6 +3,7 @@ import asyncio
 from authly.core.db.redis_crud import RedisManager
 from authly.core.config import application_config
 from authly.core.log import Logger
+from authly.core.log import LogLevel
 
 REDIS_HOST = application_config.RedisdbSettings.REDIS_HOST
 REDIS_PORT = application_config.RedisdbSettings.REDIS_PORT
@@ -24,7 +25,7 @@ async def async_redis_operations() -> dict:
     if connected:
         test_results["connection"] = "Passed"
     if not connected:
-        Logger.critical("Failed to connect to Redis:", connected)
+        Logger.log(LogLevel.CRITICAL, "Failed to connect to Redis:", connected)
         return test_results
 
     # Perform a write operation
@@ -33,37 +34,39 @@ async def async_redis_operations() -> dict:
     write_result = redis.set(key, value)
     if write_result:
         test_results["write_operation"] = "Passed"
-        Logger.debug("Value set successfully in Redis")
+        Logger.log(LogLevel.DEBUG, "Value set successfully in Redis")
     else:
         test_results["write_operation"] = "Failed"
-        Logger.error("Failed to set value in Redis")
+        Logger.log(LogLevel.ERROR, "Failed to set value in Redis")
 
     # Perform a read operation
     read_result = redis.get(key)
     if read_result:
         test_results["read_operation"] = "Passed"
-        Logger.debug(f"Value retrieved from Redis: {read_result}")
+        Logger.log(
+            LogLevel.DEBUG, f"Value retrieved from Redis: {read_result}"
+        )
     else:
         test_results["read_operation"] = "Failed"
-        Logger.error("Failed to retrieve value from Redis")
+        Logger.log(LogLevel.ERROR, "Failed to retrieve value from Redis")
 
     # Perform a delete operation
     delete_result = redis.delete(key)
     if delete_result:
         test_results["delete_operation"] = "Passed"
-        Logger.debug("Key deleted successfully from Redis")
+        Logger.log(LogLevel.DEBUG, "Key deleted successfully from Redis")
     else:
         test_results["delete_operation"] = "Failed"
-        Logger.error("Failed to delete key from Redis")
+        Logger.log(LogLevel.ERROR, "Failed to delete key from Redis")
 
     # Close the Redis connection
     closed = redis.close()
     if closed:
         test_results["close_connection"] = "Passed"
-        Logger.debug("Redis connection closed successfully")
+        Logger.log(LogLevel.DEBUG, "Redis connection closed successfully")
     else:
         test_results["close_connection"] = "Failed"
-        Logger.error("Failed to close Redis connection")
+        Logger.log(LogLevel.ERROR, "Failed to close Redis connection")
 
     return {"Redis": [test_results]}
 

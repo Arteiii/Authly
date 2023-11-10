@@ -8,6 +8,7 @@ import json
 from enum import Enum
 from pydantic_settings import BaseSettings
 from authly.core.log import Logger
+from authly.core.log import LogLevel
 
 
 class HashingAlgorithmTypes(str, Enum):
@@ -314,7 +315,7 @@ def check_file(file_name):
             parent_directory, "config_temp", file_name
         )
 
-        Logger.info("JSON file path:", f"{json_file_path}")
+        Logger.log(LogLevel.INFO, "JSON file path:", f"{json_file_path}")
 
         # Load JSON file
         with open(json_file_path, encoding="utf-8") as f:
@@ -322,11 +323,11 @@ def check_file(file_name):
         return data
 
     except FileNotFoundError as e:
-        Logger.error(f"File not found error: {e}")
+        Logger.log(LogLevel.ERROR, f"File not found error: {e}")
     except json.JSONDecodeError as e:
-        Logger.error(f"JSON decoding error: {e}")
+        Logger.log(LogLevel.ERROR, f"JSON decoding error: {e}")
     except Exception as e:
-        Logger.error(f"An unexpected error occurred: {e}")
+        Logger.log(LogLevel.ERROR, f"An unexpected error occurred: {e}")
 
 
 def validate_config(data):
@@ -335,7 +336,7 @@ def validate_config(data):
         return return_data
 
     except Exception as e:
-        Logger.error(
+        Logger.log(
             "An error occurred while parsing the configuration data:",
             f"Error details: {e}",
         )
