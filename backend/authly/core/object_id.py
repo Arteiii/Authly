@@ -8,9 +8,7 @@ def convert_object_id_to_str(data):
     if isinstance(data, dict):
         for key, value in data.items():
             if isinstance(value, dict):
-                convert_object_id_to_str(
-                    value
-                )  # Recursively process nested dictionaries
+                convert_object_id_to_str(value)
             elif isinstance(value, ObjectId):
                 data[key] = str(value)
         if "_id" in data:
@@ -25,9 +23,7 @@ def convert_str_to_object_id(data):
     if isinstance(data, dict):
         for key, value in data.items():
             if isinstance(value, dict):
-                convert_str_to_object_id(
-                    value
-                )  # Recursively process nested dictionaries
+                convert_str_to_object_id(value)
             elif key == "id":
                 data["_id"] = ObjectId(value)
                 del data["id"]

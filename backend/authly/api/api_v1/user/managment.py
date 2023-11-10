@@ -5,18 +5,21 @@ from email_validator import EmailNotValidError, validate_email
 
 
 from pydantic import EmailStr
-from authly.core.object_id import convert_object_id_to_str
-from authly.core.db.mongo import MongoDBManager
-from authly.core.config import config
-from authly.core.log import Logger
+from backend.authly.core.object_id import (
+    convert_object_id_to_str,
+    convert_str_to_object_id,
+)
+from backend.authly.core.db.mongo_crud import MongoDBManager
+from backend.authly.core.config import application_config
+from backend.authly.core.log import Logger
 
 
 class UserManagment:
     def __init__(
         self,
         collection: str = "Users",
-        db_name: str = config.MongodbSettings.MONGODB_NAME,
-        url: str = config.MongodbSettings.MONGODB_URL,
+        db_name: str = application_config.MongodbSettings.MONGODB_NAME,
+        url: str = application_config.MongodbSettings.MONGODB_URL,
     ):
         self.mongo_client = MongoDBManager(
             collection_name=collection,
@@ -25,7 +28,7 @@ class UserManagment:
         )
 
     async def create_user(
-        self, username: str, email: EmailStr, password: str, role: str
+        self, username: str, email: EmailStr, password: str, role: list | str
     ):
         current_time = datetime.now().isoformat()
 
@@ -34,7 +37,7 @@ class UserManagment:
             "username": username,
             "email": email,
             "password": password,
-            "role": role,
+            "role": [role],
             "disabled": False,
             "geo_location": "None",
             "username_history": [
@@ -58,7 +61,7 @@ class UserManagment:
         )
 
         if is_email_in_use:
-            Logger.error("alread registered email")
+            Logger.log(LogLevel.ERROR, "alread registered email")
             return False, "alread registered email"
 
         # Insert the user data into the MongoDB collection
@@ -69,7 +72,7 @@ class UserManagment:
             data=user_data_dict
         )
         if bool is not True:
-            Logger.error(f"mongo returned invalid op ({bool})")
+            Logger.log(LogLevel.ERROR, f"mongo returned invalid op ({bool})")
 
         result = {
             "mongo_state": bool,
@@ -112,13 +115,17 @@ class UserManagment:
                     {"_id": ObjectId(user_id)}, old_user_data
                 )
 
-                Logger.debug(f"Updated user data: {old_user_data}")
+                Logger.log(
+                    LogLevel.DEBUG, f"Updated user data: {old_user_data}"
+                )
                 return True, "Username updated successfully."
             else:
-                Logger.debug(f"No user found with ID: {user_id}")
+                Logger.log(LogLevel.DEBUG, f"No user found with ID: {user_id}")
                 return False, "User not found."
         except Exception as e:
-            Logger.debug(f"Error occurred while updating username: {e}")
+            Logger.log(
+                LogLevel.DEBUG, f"Error occurred while updating username: {e}"
+            )
             return (
                 False,
                 "Error occurred while updating username. read more in logs",
@@ -128,13 +135,13 @@ class UserManagment:
         try:
             validate_email(new_email)
         except EmailNotValidError:
-            Logger.error(f"Invalid email address ({new_email})")
+            Logger.log(LogLevel.ERROR, f"Invalid email address ({new_email})")
             raise ValueError(f"Invalid email address ({new_email})")
 
         bool, user = await self.mongo_client.read_manager.find_one(
             query={"_id": user_id}
         )
-        Logger.debug(f"update username user return = {user}")
+        Logger.log(LogLevel.DEBUG, f"update username user return = {user}")
         return user
 
     async def delete_user(self, user_id: List[str]):
@@ -179,16 +186,18 @@ class UserManagment:
         # Use a more efficient method to check which argument is provided
         if user_id:
             status, data = await self.mongo_client.read_manager.find_one(
-                query={"_id": user_id}
+                query={"_id": ObjectId(user_id)}
             )
-            Logger.debug(
+            Logger.log(
+                LogLevel.DEBUG,
                 f"get_user_data - user_id (status): {status}",
                 f"get_user_data - user_id (data): {data}",
             )
         if email:
             query = {"email": str(email)}
             status, data = await self.mongo_client.read_manager.find_one(query)
-            Logger.debug(
+            Logger.log(
+                LogLevel.DEBUG,
                 f"email: {email}",
                 f"get_user_data - email (status): {status}",
                 f"get_user_data - email (data): {data}",
@@ -197,14 +206,16 @@ class UserManagment:
             status, data = await self.mongo_client.read_manager.find_one(
                 query={"username": username}
             )
-            Logger.debug(
+            Logger.log(
+                LogLevel.DEBUG,
                 f"get_user_data - username (status): {status}",
                 f"get_user_data - username (data): {data}",
             )
 
         data = convert_object_id_to_str(data)
 
-        Logger.debug(
+        Logger.log(
+            LogLevel.DEBUG,
             "final output after convert_object_id_to_str (status)",
             f"{status}",
             "final output after convert_object_id_to_str (data)",

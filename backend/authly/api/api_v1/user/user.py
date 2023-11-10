@@ -3,34 +3,24 @@ main.py
 """
 import time
 
-from typing import Annotated, Union
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr  # , ValidationError, validate_email
+from typing import Annotated  # , Union
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
+# from pydantic import BaseModel, EmailStr, ValidationError, validate_email
 
 from authly.api.api_v1.authentication import token as token
 from authly.api.api_v1.authentication import user_authorization as ua
 from authly.api.api_v1.user import model
-from authly.core.config import config
+from authly.core.config import application_config
 from authly.core.hashing import Hasher
 from authly.api.api_v1.user.managment import UserManagment
 from authly.core.log import Logger
-
+from authly.core.log import LogLevel
 
 app = APIRouter()
-Mongo_URL = config.MongodbSettings.MONGODB_URL
-
-
-class User(BaseModel):
-    id: str
-    username: str
-    email: Union[EmailStr, None] = None
-    disabled: Union[bool, None] = None
-
-
-class UserInDB(User):
-    password: str
-    role: Union[str, None] = None
-    geo_location: Union[str, None] = None
+Mongo_URL = application_config.MongodbSettings.MONGODB_URL
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/user/token")
 
 
 def login_log_reponse(data) -> dict:
@@ -58,8 +48,9 @@ async def hash_password(password) -> str:
 
     end_time = time.time()  # Record the end time
 
-    Logger.debug(
-        f"using: {config.PasswordConfig.HASHING_ALGORITHM}",
+    Logger.log(
+        LogLevel.DEBUG,
+        f"using: {application_config.PasswordConfig.HASHING_ALGORITHM}",
         f"Hashed Password: {hashed}",
         f"Hashing Time: {end_time - start_time} seconds",
     )
@@ -80,7 +71,7 @@ async def register_user(user_data: model.UserRegistration):
         hashed_password = await hash_password(password=user_data.password)
 
     except Exception as e:
-        Logger.error("Exception while hashing password", f"{e}")
+        Logger.log(LogLevel.ERROR, "Exception while hashing password", f"{e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     try:
@@ -92,11 +83,11 @@ async def register_user(user_data: model.UserRegistration):
         )
 
     except ValueError as ve:
-        Logger.error(f"Bad Request: {ve}")
+        Logger.log(LogLevel.ERROR, f"Bad Request: {ve}")
         raise HTTPException(status_code=400, detail="Bad Request")
 
     except Exception as e:
-        Logger.error("Exception while creating user", f"{e}")
+        Logger.log(LogLevel.ERROR, "Exception while creating user", f"{e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     finally:
@@ -119,42 +110,42 @@ async def delete_user(data: model.DeleteUser) -> model.DeleteUserResponse:
     )
 
     if not is_success:
-        Logger.debug("delete_user", f"{is_success}", f"{response}")
+        Logger.log(
+            LogLevel.DEBUG, "delete_user", f"{is_success}", f"{response}"
+        )
     else:
-        Logger.debug(f"{is_success}", f"{response}", f"{type(response)}")
+        Logger.log(
+            LogLevel.DEBUG, f"{is_success}", f"{response}", f"{type(response)}"
+        )
     return response
 
 
 @app.post("/token", response_model=model.Token)
-async def login(form_data: Annotated[ua.OAuth2PasswordRequestForm, Depends()]):
-    user_manager = UserManagment()
-    bool, user_dict = await user_manager.get_user_data(
-        email=form_data.username
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    (valid, user) = await ua.authenticate_user(
+        email=form_data.username, password=form_data.password
     )
-    if not bool:
+    if not valid:
         raise HTTPException(
-            status_code=400, detail="Incorrect email or password"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-
-    user = UserInDB(**user_dict)
-    pw_verify = Hasher.verify_password(
-        password=form_data.password, stored_hash=user.password
-    )
-
-    if not pw_verify:
-        Logger.debug(f"hash compare failed with status: {pw_verify}")
-        raise HTTPException(
-            status_code=400, detail="Incorrect username or password"
+    _, new_token = token.Token(user_id=user.get("id"))
+    if not _:
+        Logger.log(
+            LogLevel.ERROR,
+            "Exception while creating token",
+            f"{_}({new_token})",
         )
-    else:
-        access_token = token.Token(user_id=user.id)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    Logger.log(LogLevel.DEBUG, "New token:", new_token)
+    return {"access_token": new_token, "token_type": "bearer"}
 
-    return {"access_token": access_token, "token_type": "bearer"}
 
-
-@app.get("/users/me/", response_model=ua.User)
+@app.get("/users/me/", response_model=model.User)
 async def read_users_me(
-    current_user: Annotated[str, Depends(ua.get_current_active_user)]
+    current_user: Annotated[model.User, Depends(ua.get_current_active_user)]
 ):
     return current_user
 
@@ -187,5 +178,5 @@ async def read_users_me(
 #         raise HTTPException(status_code=400, detail=f"Bad Request: {ve}")
 
 #     except Exception as e:
-#         Logger.error(f"Exception while creating user ({e})")
+#         Logger.log(LogLevel.ERROR, f"Exception while creating user ({e})")
 #         raise HTTPException(status_code=500, detail="Internal Server Error")

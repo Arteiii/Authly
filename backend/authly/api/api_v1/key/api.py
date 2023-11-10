@@ -5,9 +5,12 @@ main.py
 from fastapi import APIRouter
 
 
-from authly.api.api_v1.key.managment import generate_new_key, delete_key
-from authly.core.converter import convert_duration_to_minutes
-from authly.api.api_v1.key import model
+from backend.authly.api.api_v1.key.managment import (
+    generate_new_key,
+    delete_key,
+)
+from backend.authly.core.converter import convert_duration_to_minutes
+from backend.authly.api.api_v1.key import model
 
 app = APIRouter()
 

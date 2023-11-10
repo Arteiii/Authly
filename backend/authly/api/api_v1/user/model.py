@@ -1,9 +1,11 @@
 import base64
 from typing import Dict, List, Optional
-from authly.core.log import Logger
+from backend.authly.core.log import Logger
 
-from authly.core.config import config
-from authly.core.password_validation import validate_password_complexity
+from backend.authly.core.config import application_config
+from backend.authly.core.password_validation import (
+    validate_password_complexity,
+)
 from pydantic import BaseModel, EmailStr, Field, constr, validator
 
 
@@ -12,7 +14,7 @@ def encode_to_base64(value: str) -> str:
         encoded_password = base64.b64encode(value.encode()).decode()
         return encoded_password
     except Exception as e:
-        Logger.error(f"Invalid Base64-encoded password ({e})")
+        Logger.log(LogLevel.ERROR, f"Invalid Base64-encoded password ({e})")
         raise ValueError(
             "Error occurred while encoding to Base64: (more in logs)"
         )
@@ -25,7 +27,7 @@ def decode_base64(value: str) -> str:
         ).decode()
         return decoded_password
     except base64.binascii.Error as err:
-        Logger.error(f"Invalid Base64-encoded password ({err})")
+        Logger.log(LogLevel.ERROR, f"Invalid Base64-encoded password ({err})")
         raise ValueError("Invalid Base64-encoded password: (more in logs)")
 
 
@@ -57,8 +59,8 @@ class UserRegistration(BaseModel):
     email: EmailStr = Field(..., example="1337@Allah.com")
     username: str = Field(..., example="abc#1234")
     password: constr(
-        min_length=config.PasswordConfig.DEFAULT_PASSWORD_MIN_LENGTH,
-        max_length=config.PasswordConfig.DEFAULT_PASSWORD_MAX_LENGTH,
+        min_length=application_config.PasswordConfig.DEFAULT_PASSWORD_MIN_LENGTH,
+        max_length=application_config.PasswordConfig.DEFAULT_PASSWORD_MAX_LENGTH,
     ) = Field(..., example="XDFmYyciU3wreHUnOCwiX3VXajMkS1BeKQ==")
 
     @validator("password")
@@ -112,3 +114,10 @@ class GetLog(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class User(BaseModel):
+    id: str
+    username: str | None = None
+    email: str | None = None
+    disabled: bool | None = None

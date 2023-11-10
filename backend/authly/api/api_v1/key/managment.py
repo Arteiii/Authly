@@ -1,6 +1,6 @@
 from authly.api.api_v1.key.generation import generate_keys_with_format
-from authly.core.db.mongo import MongoDBManager
-from authly.core.config import config
+from authly.core.db.mongo_crud import MongoDBManager
+from backend.authly.core.config import application_config
 import datetime
 
 
@@ -14,8 +14,8 @@ async def generate_new_key(
 
     try:
         mongo_manager = MongoDBManager(
-            db_url=config.MongodbSettings.MONGODB_URL,
-            db_name=config.MongodbSettings.MONGODB_NAME,
+            db_url=application_config.MongodbSettings.MONGODB_URL,
+            db_name=application_config.MongodbSettings.MONGODB_NAME,
             collection_name="Keys",
         )
 
@@ -53,8 +53,8 @@ async def delete_key(
             )
 
         mongo_manager = MongoDBManager(
-            db_url=config.MongodbSettings.MONGODB_URL,
-            db_name=config.MongodbSettings.MONGODB_NAME,
+            db_url=application_config.MongodbSettings.MONGODB_URL,
+            db_name=application_config.MongodbSettings.MONGODB_NAME,
             collection_name="Keys",
         )
 

@@ -1,7 +1,8 @@
 {
-  "Debug": {
+  "Debug_Authly": {
+    "DEBUG": true,
     "LoggingSettings": {
-      "LOG_LEVEL": "DEBUG",
+      "LOG_LEVEL": "DEVELOPMENT",
       "LOG_FILE_PATH": "app.log"
     }
   },
