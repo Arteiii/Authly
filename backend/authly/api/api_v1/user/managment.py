@@ -12,6 +12,7 @@ from backend.authly.core.object_id import (
 from backend.authly.core.db.mongo_crud import MongoDBManager
 from backend.authly.core.config import application_config
 from backend.authly.core.log import Logger
+from backend.authly.core.log import LogLevel
 
 
 class UserManagment:
@@ -29,7 +30,7 @@ class UserManagment:
 
     async def create_user(
         self, username: str, email: EmailStr, password: str, role: list | str
-    ):
+    ) -> tuple[bool, dict]:
         current_time = datetime.now().isoformat()
 
         # Generate a unique user ID
@@ -47,77 +48,71 @@ class UserManagment:
             "keys": [],
         }
 
-        # Check if email is valid
-        try:
-            validate_email(email)
-        except EmailNotValidError:
-            raise ValueError("Invalid email address")
-
         (
-            is_email_in_use,
+            email_in_use,
             existing_user,
+            details,
         ) = await self.mongo_client.read_manager.find_one(
             {"email": str(email)}
         )
 
-        if is_email_in_use:
+        if email_in_use:
             Logger.log(LogLevel.ERROR, "alread registered email")
-            return False, "alread registered email"
+            raise ValueError("Invalid email address")
 
         # Insert the user data into the MongoDB collection
         (
-            bool,
+            status,
             edited_id,
+            details,
         ) = await self.mongo_client.write_manager.insert_document(
             data=user_data_dict
         )
-        if bool is not True:
-            Logger.log(LogLevel.ERROR, f"mongo returned invalid op ({bool})")
+        if status is not True:
+            Logger.log(LogLevel.ERROR, f"mongo returned invalid op ({status})")
 
         result = {
-            "mongo_state": bool,
+            "mongo_state": status,
             "user_id": edited_id,
             "username": username,
             "email": email,
         }
 
-        return True, result
+        return (True, result)
 
     async def update_username(self, user_id: str, new_username):
         try:
             (
-                bool_find_one_result,
-                old_user_data,
+                status,
+                data,
+                details,
             ) = await self.mongo_client.read_manager.find_one(
                 query={"_id": ObjectId(user_id)}
             )
 
-            if old_user_data:
+            if data:
                 # Fetch the old username
-                old_username = old_user_data.get("username")
-
+                old_username = data.get("username")
                 # Update the username in the fetched data
-                old_user_data["username"] = new_username
+                data["username"] = new_username
 
                 # Update the username history
                 current_time = datetime.now().isoformat()
-                for entry in old_user_data["username_history"]:
+                for entry in data["username_history"]:
                     if old_username in entry:
                         entry[old_username]["to"] = current_time
                         break
 
-                old_user_data["username_history"].append(
+                data["username_history"].append(
                     {new_username: {"from": current_time, "to": None}}
                 )
 
                 # Update the document in the collection
                 await self.mongo_client.update_manager.update_one_document(
-                    {"_id": ObjectId(user_id)}, old_user_data
+                    {"_id": ObjectId(user_id)}, data
                 )
 
-                Logger.log(
-                    LogLevel.DEBUG, f"Updated user data: {old_user_data}"
-                )
+                Logger.log(LogLevel.DEBUG, f"Updated user data: {data}")
                 return True, "Username updated successfully."
             else:
                 Logger.log(LogLevel.DEBUG, f"No user found with ID: {user_id}")
@@ -131,95 +126,73 @@ class UserManagment:
                 "Error occurred while updating username. read more in logs",
             )
 
-    async def update_email(self, user_id: str, new_email):
-        try:
-            validate_email(new_email)
-        except EmailNotValidError:
-            Logger.log(LogLevel.ERROR, f"Invalid email address ({new_email})")
-            raise ValueError(f"Invalid email address ({new_email})")
-
-        bool, user = await self.mongo_client.read_manager.find_one(
-            query={"_id": user_id}
+    async def delete_user_by_id(self, user_id: str) -> tuple[bool, str, str]:
+        (
+            status,
+            data,
+            details,
+        ) = await self.mongo_client.delete_manager.delete_document(
+            query={"_id": ObjectId(user_id)}
         )
-        Logger.log(LogLevel.DEBUG, f"update username user return = {user}")
-        return user
 
-    async def delete_user(self, user_id: List[str]):
-        results = {}
-        for id in user_id:
-            (
-                bool,
-                db_result,
-            ) = await self.mongo_client.delete_manager.delete_document(
-                query={"_id": ObjectId(id)}
-            )
-            results[id] = bool
+        return (status, data, details)
 
-        if False in results.values():
-            return False, results
-        else:
-            return True, results
-
-    async def update_user_roles(
-        self,
-        user_id: [str],
-        add_roles: List = None,
-        remove_roles: List = None,
-        set_roles: List = None,
-    ):
-        results = {}
-
-        op_result = "suc..."  # returns from mongo crud
-        # after ops:
-        results = {user_id: op_result}
-        return results
-
-    async def get_user_data(
-        self, user_id: str = None, email: str = None, username: str = None
-    ):
-        # Check if at least one of the parameters is provided
-        if not user_id and not email and not username:
-            raise ValueError(
-                "At least one of user_id, email, or username is required."
-            )
-
-        # Use a more efficient method to check which argument is provided
-        if user_id:
-            status, data = await self.mongo_client.read_manager.find_one(
-                query={"_id": ObjectId(user_id)}
-            )
-            Logger.log(
-                LogLevel.DEBUG,
-                f"get_user_data - user_id (status): {status}",
-                f"get_user_data - user_id (data): {data}",
-            )
-        if email:
-            query = {"email": str(email)}
-            status, data = await self.mongo_client.read_manager.find_one(query)
-            Logger.log(
-                LogLevel.DEBUG,
-                f"email: {email}",
-                f"get_user_data - email (status): {status}",
-                f"get_user_data - email (data): {data}",
-            )
-        if username:
-            status, data = await self.mongo_client.read_manager.find_one(
-                query={"username": username}
-            )
-            Logger.log(
-                LogLevel.DEBUG,
-                f"get_user_data - username (status): {status}",
-                f"get_user_data - username (data): {data}",
-            )
-
-        data = convert_object_id_to_str(data)
-
+    # reworked:
+    async def get_user_data_by_id(
+        self, user_id: str
+    ) -> tuple[bool, dict[str, str]]:
+        (
+            status,
+            data,
+            details,
+        ) = await self.mongo_client.read_manager.find_one(
+            query={"_id": ObjectId(user_id)}
+        )
         Logger.log(
             LogLevel.DEBUG,
-            "final output after convert_object_id_to_str (status)",
-            f"{status}",
-            "final output after convert_object_id_to_str (data)",
-            f"{data}",
+            f"user data by id status({status})",
+            f"user_id({user_id})",
+            f"data({data})",
+            f"details({details})",
         )
+        return (status, convert_object_id_to_str(data))
 
-        return status, data
+    async def get_user_data_by_email(
+        self, email: str
+    ) -> tuple[bool, dict[str, str]]:
+        (
+            status,
+            data,
+            details,
+        ) = await self.mongo_client.read_manager.find_one(
+            {"email": str(email)}
+        )
+        Logger.log(
+            LogLevel.DEBUG,
+            "user data by email",
+            f"status({status})",
+            f"email({email})",
+            f"data({data})",
+            f"details({details})",
+        )
+        return (status, convert_object_id_to_str(data))
+
+    async def get_user_data_by_username(
+        self, username: str
+    ) -> tuple[bool, dict[str, str]]:
+        (
+            status,
+            data,
+            details,
+        ) = await self.mongo_client.read_manager.find_one(
+            query={"username": username}
+        )
+        Logger.log(
+            LogLevel.DEBUG,
+            "user data by email",
+            f"status({status})",
+            f"email({username})",
+            f"data({data})",
+            f"details({details})",
+        )
+        return (status, convert_object_id_to_str(data))

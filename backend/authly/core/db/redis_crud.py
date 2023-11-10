@@ -89,7 +89,7 @@ class RedisManager:
         return (True, None, "Succesfully!")
 
     def set(
-        self, key: any, value: any, expiration: int = None
+        self, key: any, value: any, expiration_seconds: int = None
     ) -> tuple[bool, str, str]:
         """
         Set a key-value pair in Redis.
@@ -107,8 +107,8 @@ class RedisManager:
             - str: A descriptive message about the set operation.
         """
         try:
-            if expiration:
-                self.redis_client.setex(key, expiration, value)
+            if expiration_seconds:
+                self.redis_client.setex(key, expiration_seconds, value)
             else:
                 self.redis_client.set(key, value)
         except redis.RedisError as e:
@@ -117,7 +117,7 @@ class RedisManager:
             True,
             None,
             "Succesfully inserted:"
-            f"key({key}), value({value}), expiration({expiration})",
+            f"key({key}), value({value}), expiration({expiration_seconds})",
         )
 
     def get(self, key: any) -> tuple[bool, str, str]:

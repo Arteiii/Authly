@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 # from pydantic import BaseModel, EmailStr, ValidationError, validate_email
 
-from authly.api.api_v1.authentication import token as token
+from authly.api.api_v1.authentication import token as TokenManager
 from authly.api.api_v1.authentication import user_authorization as ua
 from authly.api.api_v1.user import model
 from authly.core.config import application_config
@@ -131,7 +131,10 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    _, new_token = token.Token(user_id=user.get("id"))
+    status, new_token, details = TokenManager.get_new_token(
+        user_id=user.get("id")
+        redis_manager=
+    )
     if not _:
         Logger.log(
             LogLevel.ERROR,

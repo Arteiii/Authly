@@ -64,7 +64,7 @@ class MongoDBManager:
             """
             self.collection = collection
 
-        async def insert_document(self, data) -> tuple[bool, str, str]:
+        async def insert_document(self, data) -> tuple[bool, str | None, str]:
             """
             Insert a document into the MongoDB collection.
 
@@ -113,8 +113,7 @@ class MongoDBManager:
                 return (
                     True,
                     "Documents inserted successfully",
-                    "Documents inserted successfully:",
-                    f"{data_list}",
+                    "Documents inserted successfully:" f"{data_list}",
                 )
             except Exception as e:
                 return (
@@ -137,7 +136,7 @@ class MongoDBManager:
             """
             self.collection = collection
 
-        async def find_one(self, query) -> tuple[bool, str, str]:
+        async def find_one(self, query) -> tuple[bool, dict, str]:
             """
             Find one document in the MongoDB collection based on\
                 the given query.
@@ -165,7 +164,7 @@ class MongoDBManager:
             except Exception as e:
                 return (
                     False,
-                    "Error occurred during find_one operation",
+                    result,
                     "Error occurred during find_one operation" f"{e}",
                 )
 
