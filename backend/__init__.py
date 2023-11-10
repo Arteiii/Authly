@@ -2,7 +2,7 @@ import importlib
 import hashlib
 import os
 import json
-import shutil
+from pathlib import Path
 import logging
 from datetime import datetime
 
@@ -11,17 +11,14 @@ def clear_console():
     os.system("cls" if os.name == "nt" else "clear")
 
 
-def clean_pycache(directory):
-    """
-    Clean all __pycache__ directories in the specified directory.
-    """
+def clean_pycache(directory: str):
     deleted_directories = []
-    for root, dirs, _ in os.walk(directory):
-        for d in dirs:
-            if d == "__pycache__":
-                pycache_path = os.path.join(root, d)
-                shutil.rmtree(pycache_path)
-                deleted_directories.append(pycache_path)
+
+    for path in Path(directory).rglob("__pycache__"):
+        if path.is_dir():
+            path.rmdir()
+            deleted_directories.append(str(path))
+
     return deleted_directories
 
 

@@ -1,15 +1,15 @@
-import os
-import shutil
+from pathlib import Path
 
 
-def clear_pycache(root_dir):
-    for root, dirs, files in os.walk(root_dir):
-        for d in dirs:
-            if d == "__pycache__":
-                pycache_dir = os.path.join(root, d)
-                shutil.rmtree(pycache_dir)
-                print(f"Deleted {pycache_dir}")
+def clean_pycache(directory: str):
+    deleted_directories = []
+
+    for path in Path(directory).rglob("__pycache__"):
+        if path.is_dir():
+            path.rmdir()
+            deleted_directories.append(str(path))
+            print(f"Deleted {deleted_directories}")
 
 
 if __name__ == "__main__":
-    clear_pycache("./backend")
+    clean_pycache("./backend")
