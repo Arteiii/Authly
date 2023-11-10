@@ -11,7 +11,8 @@ def clear_screen():
     """
     Clear the console screen.
     """
-    subprocess.run("cls" if os.name == "nt" else "clear", shell=True)
+    command = "cls" if os.name == "nt" else "clear"
+    subprocess.run(command, shell=False)
 
 
 def check_dependencies():

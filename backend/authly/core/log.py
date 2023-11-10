@@ -53,9 +53,9 @@ class Logger:
         Logger.verbosity_level = level
 
     @staticmethod
-    def info(*args):
-        NAME = "INFO"
-        COL = Fore.BLUE
+    def _log(level, *args):
+        NAME = level.upper()
+        COL = getattr(Fore, level)
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         caller_frame = inspect.currentframe().f_back
         caller_info = inspect.getframeinfo(caller_frame)
@@ -69,112 +69,35 @@ class Logger:
                 line=caller_info.lineno,
                 time=current_time,
             )
+
         for arg in args[0:]:
             print(f"{COL}|{Fore.RESET}  {str(arg)}")
         if len(args) > 1:
             footer(COL)
         if len(args) <= 1:
             print("\n")
+
+    @staticmethod
+    def info(*args):
+        Logger._log("BLUE", *args)
 
     @staticmethod
     def warning(*args):
-        NAME = "WARNING"
-        COL = Fore.YELLOW
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        caller_frame = inspect.currentframe().f_back
-        caller_info = inspect.getframeinfo(caller_frame)
-
-        if args:
-            banner(
-                main_col=COL,
-                main_text=NAME,
-                filename=caller_info.filename,
-                function=caller_info.function,
-                line=caller_info.lineno,
-                time=current_time,
-            )
-        for arg in args[0:]:
-            print(f"{COL}|{Fore.RESET}  {str(arg)}")
-        if len(args) > 1:
-            footer(COL)
-        if len(args) <= 1:
-            print("\n")
+        Logger._log("YELLOW", *args)
 
     @staticmethod
     def error(*args):
-        NAME = "ERROR"
-        COL = Fore.MAGENTA
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        caller_frame = inspect.currentframe().f_back
-        caller_info = inspect.getframeinfo(caller_frame)
-
-        if args:
-            banner(
-                main_col=COL,
-                main_text=NAME,
-                filename=caller_info.filename,
-                function=caller_info.function,
-                line=caller_info.lineno,
-                time=current_time,
-            )
-
-        for arg in args[0:]:
-            print(f"{COL}|{Fore.RESET}  {str(arg)}")
-        if len(args) > 1:
-            footer(COL)
-        if len(args) <= 1:
-            print("\n")
+        Logger._log("MAGENTA", *args)
 
     @staticmethod
     def critical(*args):
-        NAME = "CRITICAL"
-        COL = Fore.RED
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        caller_frame = inspect.currentframe().f_back
-        caller_info = inspect.getframeinfo(caller_frame)
-
-        if args:
-            banner(
-                main_col=COL,
-                main_text=NAME,
-                filename=caller_info.filename,
-                function=caller_info.function,
-                line=caller_info.lineno,
-                time=current_time,
-            )
-        for arg in args[0:]:
-            print(f"{COL}|{Fore.RESET}  {str(arg)}")
-        if len(args) > 1:
-            footer(COL)
-        if len(args) <= 1:
-            print("\n")
+        Logger._log("RED", *args)
         sys.exit(1)
 
     @staticmethod
     def debug(*args):
         if Logger.verbosity_level == "DEV":
-            NAME = "DEBUG"
-            COL = Fore.CYAN
-            current_time = datetime.datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
-            caller_frame = inspect.currentframe().f_back
-            caller_info = inspect.getframeinfo(caller_frame)
-
-            if args:
-                banner(
-                    main_col=COL,
-                    main_text=NAME,
-                    filename=caller_info.filename,
-                    function=caller_info.function,
-                    line=caller_info.lineno,
-                    time=current_time,
-                )
-
-            for arg in args[0:]:
-                print(f"{COL}|{Fore.RESET} " + str(arg))
-            if len(args) > 1:
-                footer(COL)
+            Logger._log("CYAN", *args)
 
     def tests(*args, format=True):
         NAME = "TESTS"
@@ -203,9 +126,9 @@ class Logger:
                         )
                         for item_key, item_value in sublist.items():
                             print(
-                                f"{COL}|{Fore.RESET}   - \
-{str(format_value(item_value)).ljust(max_item_length)}   \
-{item_key.ljust(15)}"
+                                f"{COL}|{Fore.RESET}   - "
+                                f"{str(format_value(item_value)).ljust(max_item_length)}"
+                                f"   {item_key.ljust(15)}"
                             )
                 else:
                     print(f"{COL}| {Fore.RESET}{key}: {format_value(value)}")
