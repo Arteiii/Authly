@@ -25,7 +25,6 @@ Date: 25/10/2023
 
 import motor.motor_asyncio
 import asyncio
-from authly.core.log import Logger
 
 
 class MongoDBManager:
@@ -57,32 +56,72 @@ class MongoDBManager:
 
     class WriteManager:
         def __init__(self, collection):
+            """
+            Initialize the WriteManager class.
+
+            Args:
+                collection: The MongoDB collection to manage.
+            """
             self.collection = collection
 
-        async def insert_document(self, data):
+        async def insert_document(self, data) -> tuple[bool, str, str]:
+            """
+            Insert a document into the MongoDB collection.
+
+            Args:
+                data: The document data to insert.
+
+            Returns:
+                A tuple containing:
+                - bool: True if the insertion was successful, False otherwise.
+                - str or None: The inserted document's ID if successful,\
+                    None otherwise.
+                - str: A descriptive message about the insertion result.
+            """
             try:
                 result = await self.collection.insert_one(data)
                 inserted_id = str(result.inserted_id)
-                Logger.debug(
-                    f"Document with ID {inserted_id} inserted successfully"
+                return (
+                    True,
+                    inserted_id,
+                    f"Document with ID {inserted_id} inserted successfully",
                 )
-                return True, inserted_id
             except Exception as e:
-                Logger.debug("Error occurred while inserting document", f"{e}")
-                return False, "Error occurred while inserting document"
+                return (
+                    False,
+                    None,
+                    "Error occurred while inserting document" f"{e}",
+                )
 
-        async def insert_many_documents(self, data_list):
+        async def insert_many_documents(
+            self, data_list
+        ) -> tuple[bool, str, str]:
+            """
+            Insert multiple documents into the MongoDB collection.
+
+            Args:
+                data_list: A list of documents to insert.
+
+            Returns:
+                A tuple containing:
+                - bool: True if the insertion was successful, False otherwise.
+                - str: A descriptive message about the insertion result.
+                - str: Additional information about the inserted documents.
+            """
             try:
                 await self.collection.insert_many(data_list)
-                Logger.debug(
-                    "Documents inserted successfully:", f"{data_list}"
+                return (
+                    True,
+                    "Documents inserted successfully",
+                    "Documents inserted successfully:",
+                    f"{data_list}",
                 )
-                return True, "Documents inserted successfully"
             except Exception as e:
-                Logger.debug(
-                    "Error occurred while inserting documents:", f"{e}"
+                return (
+                    False,
+                    "Error occurred while inserting documents",
+                    "Error occurred while inserting documents:" f"{e}",
                 )
-                return False, "Error occurred while inserting documents"
 
     #####################################
     #                Read:              #
@@ -90,37 +129,72 @@ class MongoDBManager:
 
     class ReadManager:
         def __init__(self, collection):
+            """
+            Initialize the ReadManager class.
+
+            Args:
+                collection: The MongoDB collection to manage.
+            """
             self.collection = collection
 
-        async def find_one(self, query):
+        async def find_one(self, query) -> tuple[bool, str, str]:
+            """
+            Find one document in the MongoDB collection based on\
+                the given query.
+
+            Args:
+                query: The query to find the document.
+
+            Returns:
+                A tuple containing:
+                - bool: True if a document was found, False otherwise.
+                - str or None: The found document if successful,\
+                    None otherwise.
+                - str: A descriptive message about the find_one result.
+            """
             try:
                 result = await self.collection.find_one(query)
                 if result:
-                    Logger.debug("Document found", f"{result}")
-                    return True, result
+                    return True, result, "Document found" f"{result}"
                 else:
-                    Logger.debug(
-                        "No document found with the given query:", f"{query}"
+                    return (
+                        False,
+                        result,
+                        "No document found with the given query:" f"{query}",
                     )
-                    return False, result
             except Exception as e:
-                Logger.error(
-                    "Error occurred during find_one operation", f"{e}"
+                return (
+                    False,
+                    "Error occurred during find_one operation",
+                    "Error occurred during find_one operation" f"{e}",
                 )
-                return False, "Error occurred during find_one operation"
 
-        async def find_many(self, query):
+        async def find_many(self, query) -> tuple[bool, str, str]:
+            """
+            Find multiple documents in the MongoDB collection\
+                based on the given query.
+
+            Args:
+                query: The query to find the documents.
+
+            Returns:
+                A tuple containing:
+                - bool: True if documents were found, False otherwise.
+                - list or None: The list of found documents if successful,\
+                    None otherwise.
+                - str: A descriptive message about the find_many result.
+            """
             try:
                 result_list = []
                 async for doc in self.collection.find(query):
                     result_list.append(doc)
-                    Logger.debug("find many", f"{doc}")
-                return True, result_list
+                return (True, result_list, "find many", f"{doc}")
             except Exception as e:
-                Logger.error(
-                    "Error occurred during find_many operation", f"{e}"
+                return (
+                    False,
+                    "Error occurred during find_many operation",
+                    "Error occurred during find_many operation" f"{e}",
                 )
-                return False, "Error occurred during find_many operation"
 
     #####################################
     #               Update:             #
@@ -128,64 +202,137 @@ class MongoDBManager:
 
     class UpdateManager:
         def __init__(self, collection):
+            """
+            Initialize the UpdateManager class.
+
+            Args:
+                collection: The MongoDB collection to manage.
+            """
             self.collection = collection
 
-        async def update_one_document(self, query, update_data):
+        async def update_one_document(
+            self, query, update_data
+        ) -> tuple[bool, str, str]:
+            """
+            Update a single document in the MongoDB collection based on the\
+                given query.
+
+            Args:
+                query: The query to find the document.
+                update_data: The data to update in the document.
+
+            Returns:
+                A tuple containing:
+                - bool: True if the update was successful, False otherwise.
+                - str: A descriptive message about the update result.
+                - str: Additional information about the update operation.
+            """
             try:
                 result = await self.collection.update_one(
                     query, {"$set": update_data}
                 )
                 if result.modified_count > 0:
-                    Logger.debug("Document updated successfully")
-                    return True, "Document updated successfully"
+                    return (
+                        True,
+                        "Document updated successfully",
+                        "Document updated successfully: "
+                        f"query({query}), updatedata ({update_data})",
+                    )
                 else:
-                    Logger.debug("No document found with the given query")
-                    return False, "No document found with the given query"
+                    return (
+                        False,
+                        "No document found with the given query",
+                        "No document found with the given query"
+                        f"query({query}), updatedata ({update_data})",
+                    )
             except Exception as e:
-                Logger.error(
-                    "Error occurred during update_one operation", f"{e}"
-                )
                 return (
                     False,
                     "Error occurred during update_one operation",
+                    "Error occurred during update_one operation" f"{e}",
                 )
 
-        async def update_many_documents(self, query, update_data):
+        async def update_many_documents(
+            self, query, update_data
+        ) -> tuple[bool, str, str]:
+            """
+            Update multiple documents in the MongoDB collection based on the\
+                given query.
+
+            Args:
+                query: The query to find the documents.
+                update_data: The data to update in the documents.
+
+            Returns:
+                A tuple containing:
+                - bool: True if the update was successful, False otherwise.
+                - str: A descriptive message about the update result.
+                - str: Additional information about the update operation.
+            """
             try:
                 result = await self.collection.update_many(
                     query, {"$set": update_data}
                 )
                 if result.modified_count > 0:
-                    Logger.debug("Documents updated successfully")
-                    return True, "Documents updated successfully"
+                    return (
+                        True,
+                        "Documents updated successfully",
+                        "Documents updated successfully"
+                        f"query({query}), update_data({update_data})",
+                    )
                 else:
-                    Logger.debug("No document found with the given query")
-                    return False, "No document found with the given query"
+                    return (
+                        False,
+                        "No document found with the given query",
+                        "No document found with the given query"
+                        f"query({query}), update_data({update_data})",
+                    )
             except Exception as e:
-                Logger.error(
-                    "Error occurred during update_many operation", f"{e}"
-                )
                 return (
                     False,
                     "Error occurred during update_many operation",
+                    "Error occurred during update_many operation" f"{e}",
                 )
 
-        async def replace_one_document(self, query, replace_data):
+        async def replace_one_document(
+            self, query, replace_data
+        ) -> tuple[bool, str, str]:
+            """
+            Replace a single document in the MongoDB collection based on the\
+                given query.
+
+            Args:
+                query: The query to find the document.
+                replace_data: The data to replace in the document.
+
+            Returns:
+                A tuple containing:
+                - bool: True if the replacement was successful,\
+                    False otherwise.
+                - str: A descriptive message about the replacement result.
+                - str: Additional information about the replacement operation.
+            """
             try:
                 result = await self.collection.replace_one(query, replace_data)
                 if result.modified_count > 0:
-                    Logger.debug("Document replaced successfully")
-                    return True, "Document replaced successfully"
+                    return (
+                        True,
+                        "Document replaced successfully",
+                        "Document replaced successfully"
+                        f" query({query}), replace_data({replace_data})",
+                    )
                 else:
-                    Logger.debug("No document found with the given query")
-                    return False, "No document found with the given query"
+                    return (
+                        False,
+                        "No document found with the given query",
+                        "No document found with the given query"
+                        f" query({query}), replace_data({replace_data})",
+                    )
             except Exception as e:
-                Logger.error(
-                    "Error occurred during replace_one operation", f"{e}"
-                )
                 return (
                     False,
                     "Error occurred during replace_one operation",
+                    "Error occurred during replace_one operation" f"{e}",
                 )
 
     #####################################
@@ -193,52 +340,106 @@ class MongoDBManager:
     #####################################
     class DeleteManager:
         def __init__(self, collection):
+            """
+            Initialize the DeleteManager class.
+
+            Args:
+                collection: The MongoDB collection to manage.
+            """
             self.collection = collection
 
-        async def delete_document(self, query):
+        async def delete_document(self, query) -> tuple[bool, str, str]:
+            """
+            Delete a single document from the MongoDB collection based on the\
+                given query.
+
+            Args:
+                query: The query to find the document.
+
+            Returns:
+                A tuple containing:
+                - bool: True if the deletion was successful, False otherwise.
+                - str: A descriptive message about the deletion result.
+                - str: Additional information about the deletion operation.
+            """
             try:
                 result = await self.collection.delete_one(query)
                 if result.deleted_count > 0:
-                    Logger.debug("Document deleted successfully")
-                    return True, "Document deleted successfully"
+                    return (
+                        True,
+                        "Document deleted successfully",
+                        "Document deleted successfully" f"query({query})",
+                    )
                 else:
-                    Logger.debug("No document found with the given query")
-                    return False, "No document found with the given query"
+                    return (
+                        False,
+                        "No document found with the given query",
+                        "No document found with the given query"
+                        f"query({query})",
+                    )
             except Exception as e:
-                Logger.error(
-                    "Error occurred during delete_document operation", f"{e}"
-                )
                 return (
                     False,
                     "Error occurred during delete_document operation",
+                    "Error occurred during delete_document operation" f"{e}",
                 )
 
-        async def delete_many_documents(self, query):
+        async def delete_many_documents(self, query) -> tuple[bool, str, str]:
+            """
+            Delete multiple documents from the MongoDB collection based on the\
+                given query.
+
+            Args:
+                query: The query to find the documents.
+
+            Returns:
+                A tuple containing:
+                - bool: True if the deletions were successful, False otherwise.
+                - str: A descriptive message about the deletion result.
+                - str: Additional information about the deletion operation.
+            """
             try:
                 result = await self.collection.delete_many(query)
                 if result.deleted_count > 0:
-                    Logger.debug("Documents deleted successfully")
-                    return True, "Documents deleted successfully"
+                    return (
+                        True,
+                        "Documents deleted successfully",
+                        "Documents deleted successfully" f"query({query})",
+                    )
                 else:
-                    Logger.debug("No documents found with the given query")
-                    return False, "No documents found with the given query"
+                    return (
+                        False,
+                        "No documents found with the given query",
+                        "No documents found with the given query"
+                        f"query({query})",
+                    )
             except Exception as e:
-                Logger.error(
-                    "Error occurred during delete_many operation", f"{e}"
-                )
                 return (
                     False,
                     "Error occurred during delete_many operation",
+                    "Error occurred during delete_many operation" f"{e}",
                 )
 
-    async def close_connection(self):
+    async def close_connection(self) -> tuple[bool, str, str]:
+        """
+        Close the MongoDB connection.
+
+        Returns:
+            A tuple containing:
+            - bool: True if the connection was closed successfully,\
+                False otherwise.
+            - str: A descriptive message about the connection closure result.
+            - str: Additional information or error message if applicable.
+        """
         try:
             self.client.close()
-            Logger.debug("Connection closed")
-            return True, "Connection closed"
+            return True, "Connection closed", "Connection closed"
         except Exception as e:
-            Logger.error("Error occurred during connection closing", f"{e}")
-            return False, "Error occurred during connection closing"
+            return (
+                False,
+                "Error occurred during connection closing",
+                "Error occurred during connection closing" f"{e}",
+            )
 
 
 async def example_usage():
