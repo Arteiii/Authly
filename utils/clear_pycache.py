@@ -11,4 +11,5 @@ def clear_pycache(root_dir):
                 print(f"Deleted {pycache_dir}")
 
 
-clear_pycache("./backend")
+if __name__ == "__main__":
+    clear_pycache("./backend")

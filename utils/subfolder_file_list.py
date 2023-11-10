@@ -9,6 +9,7 @@ def list_files_in_subfolder(subfolder_path):
     return file_list
 
 
-subfolder_path = "./backend/"
-file_list = list_files_in_subfolder(subfolder_path)
-print(file_list)
+if __name__ == "__main__":
+    subfolder_path = "./backend/"
+    file_list = list_files_in_subfolder(subfolder_path)
+    print(file_list)
