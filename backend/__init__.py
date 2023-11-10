@@ -2,13 +2,16 @@ import importlib
 import hashlib
 import os
 import json
-from pathlib import Path
 import logging
 from datetime import datetime
+import subprocess
 
 
-def clear_console():
-    os.system("cls" if os.name == "nt" else "clear")
+def clear_screen():
+    """
+    Clear the console screen.
+    """
+    subprocess.run("cls" if os.name == "nt" else "clear", shell=True)
 
 
 def check_dependencies():
@@ -213,7 +216,7 @@ def main():
 
     hash_operations(Fore, Style, directory_path, base_path)
 
-    clear_console()
+    clear_screen()
     print_logo(Fore)
     print(f"{Fore.BLUE}check: {log_file_path} for details{Fore.RESET}\n \n")
 
