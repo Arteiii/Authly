@@ -56,7 +56,7 @@ class UserManagment:
 
         if email_in_use:
             Logger.log(LogLevel.ERROR, "alread registered email")
-            raise ValueError("Invalid email address")
+            return (False, "Invalid email address")
 
         # Insert the user data into the MongoDB collection
         (

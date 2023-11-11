@@ -21,6 +21,7 @@ origins = [
 
 
 app = FastAPI()
+Logger.debug_log(Debug)
 
 if Debug is True:
     Logger.log(LogLevel.WARNING, "Security Middleware Disabled for debugging")

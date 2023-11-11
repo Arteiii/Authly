@@ -1,5 +1,6 @@
 import base64
-from typing import Dict, List, Optional
+import binascii
+from typing import Optional
 from backend.authly.core.log import Logger, LogLevel
 
 from backend.authly.core.config import application_config
@@ -7,6 +8,13 @@ from backend.authly.core.password_validation import (
     validate_password_complexity,
 )
 from pydantic import BaseModel, EmailStr, Field, constr, validator
+
+config_password_min_length = (
+    application_config.PasswordConfig.DEFAULT_PASSWORD_MIN_LENGTH
+)
+config_password_max_length = (
+    application_config.PasswordConfig.DEFAULT_PASSWORD_MAX_LENGTH
+)
 
 
 def encode_to_base64(value: str) -> str:
@@ -26,7 +34,7 @@ def decode_base64(value: str) -> str:
             value.encode(), validate=True
         ).decode()
         return decoded_password
-    except base64.binascii.Error as err:
+    except binascii.Error as err:
         Logger.log(LogLevel.ERROR, f"Invalid Base64-encoded password ({err})")
         raise ValueError("Invalid Base64-encoded password: (more in logs)")
 
@@ -39,28 +47,12 @@ def validate_base64_password(value: str) -> str:
     return value
 
 
-class UserDataResponse(BaseModel):
-    user_data: Dict[str, Dict[str, str]]
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "user_data": {
-                    "abc#1234": {
-                        "email": "user@example.com",
-                        "username": "abc#1234",
-                    }
-                }
-            }
-        }
-
-
 class UserRegistration(BaseModel):
     email: EmailStr = Field(..., example="1337@Allah.com")
     username: str = Field(..., example="abc#1234")
     password: constr(
-        min_length=application_config.PasswordConfig.DEFAULT_PASSWORD_MIN_LENGTH,
-        max_length=application_config.PasswordConfig.DEFAULT_PASSWORD_MAX_LENGTH,
+        min_length=config_password_min_length,
+        max_length=config_password_max_length,
     ) = Field(..., example="XDFmYyciU3wreHUnOCwiX3VXajMkS1BeKQ==")
 
     @validator("password")
@@ -80,35 +72,6 @@ class LoginRequest(BaseModel):
     @validator("password")
     def validate_password(cls, value):
         return validate_base64_password(value)
-
-
-class DeleteUser(BaseModel):
-    user_id: List[str]
-
-
-class DeleteUserResponse(BaseModel):
-    status: bool
-    details: str
-
-
-class UpdateUsername(BaseModel):
-    user_id: str
-    username: str
-
-
-class UserResult(BaseModel):
-    mongo_state: bool
-    user_id: str
-    username: str
-    email: EmailStr
-
-
-class GetUsersByName(BaseModel):
-    usernames: List[str]
-
-
-class GetLog(BaseModel):
-    username: Optional[str]
 
 
 class Token(BaseModel):

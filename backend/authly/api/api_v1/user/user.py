@@ -101,26 +101,8 @@ async def register_user(user_data: model.UserRegistration):
         return results
     elif not result_bool:
         raise HTTPException(
-            status_code=422, detail="Email In use or Blacklisted"
+            status_code=500, detail="Email In use or Blacklisted"
         )
-
-
-@app.delete("/")
-async def delete_user(data: model.DeleteUser) -> model.DeleteUserResponse:
-    user_manager = UserManagment()
-
-    status, results, details = await user_manager.delete_user_by_id(
-        user_id=str(data.user_id)
-    )
-
-    Logger.log(
-        LogLevel.DEBUG,
-        "delete_user",
-        f"status({status})",
-        f"repsonse({results})",
-        f"detials({details})",
-    )
-    return model.DeleteUserResponse(details=results, status=status)
 
 
 @app.post("/token", response_model=model.Token)
@@ -128,9 +110,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     (valid, user) = await ua.authenticate_user(
         email=form_data.username, password=form_data.password
     )
-    redis_manager = RedisManager(
-        RedisConfig.port, RedisConfig.db, RedisConfig.host
-    )
+    Logger.log(LogLevel.DEBUG, valid, user)
     if not valid:
         raise HTTPException(
             status_code=401,
@@ -138,8 +118,27 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    redis_manager = RedisManager(
+        RedisConfig.port, RedisConfig.db, RedisConfig.host
+    )
+    (status, data, details) = redis_manager.connect()
+    Logger.log(
+        LogLevel.DEBUG,
+        f"status({status})",
+        f"data({data})",
+        f"details({details})",
+    )
     status, new_token, details = TokenManager.get_new_token(
-        str(user.get("id")), redis_manager
+        user_id=str(user.get("id")),
+        redis_manager=redis_manager,
+        expiration_time_minutes=240,
+    )
+    (status, data, details) = redis_manager.close()
+    Logger.log(
+        LogLevel.DEBUG,
+        f"status({status})",
+        f"data({data})",
+        f"details({details})",
     )
     if not status:
         Logger.log(
@@ -157,3 +156,7 @@ async def read_users_me(
     current_user: Annotated[model.User, Depends(ua.get_current_active_user)]
 ):
     return current_user
+
+@app.post("/emal")
+async def update_email(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    

@@ -84,7 +84,7 @@ class RedisManager:
             - str: A descriptive message about the closure result.
         """
         try:
-            self.redis_client.close()  # type: ignore
+            self.redis_client.close()
         except redis.RedisError as e:
             return (False, None, f"Error closing Redis connection: {e}")
         return (True, None, "Succesfully!")
@@ -111,7 +111,7 @@ class RedisManager:
             if expiration_seconds:
                 self.redis_client.setex(key, expiration_seconds, value)
             else:
-                self.redis_client.set(key, value)  # type: ignore
+                self.redis_client.set(key, value)
         except redis.RedisError as e:
             return (False, None, f"Error setting value in Redis: {e}")
         return (
@@ -121,7 +121,7 @@ class RedisManager:
             f"key({key}), value({value}), expiration({expiration_seconds})",
         )
 
-    def get(self, key: any) -> tuple[bool, str, str]:
+    def get(self, key: str) -> tuple[bool, str, str]:
         """
         Get the value associated with a key in Redis.
 

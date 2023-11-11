@@ -103,11 +103,12 @@ async def authenticate_user(email: str, password: str) -> tuple[bool, dict]:
     if not user:
         return (
             False,
-            user,
+            {"message": "user empty"},
         )
     if not await verify_password(userdata=user, requested_pw=password):
+        Logger.log(LogLevel.ERROR, )
         return (
             False,
-            user,
+            {"message": "operation failed"},
         )
     return True, user

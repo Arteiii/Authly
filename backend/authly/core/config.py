@@ -314,7 +314,7 @@ def check_file(file_name):
             parent_directory, "config_temp", file_name
         )
 
-        Logger.log(LogLevel.INFO, "JSON file path:", f"{json_file_path}")
+        Logger.log(LogLevel.DEBUG, "JSON file path:", f"{json_file_path}")
 
         # Load JSON file
         with open(json_file_path, encoding="utf-8") as f:

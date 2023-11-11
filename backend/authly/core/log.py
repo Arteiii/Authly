@@ -85,11 +85,11 @@ class Logger:
         LogLevel.DEBUG: "DEBUG",
         LogLevel.TESTS: "TESTS",
     }
-    verbosity_level = "DEV"
+    output_debug_log: bool = False
 
     @staticmethod
-    def set_verbosity_level(level):
-        Logger.verbosity_level = level
+    def debug_log(level: bool = False):
+        Logger.output_debug_log = level
 
     @staticmethod
     def log(level: LogLevel = LogLevel.INFO, *args):
@@ -158,10 +158,6 @@ class Logger:
             args and isinstance(args[0], dict) and len(args[0]) > 1
         ):
             footer(COL)
-
-    @staticmethod
-    def set_verbosity(verbosity):
-        Logger.verbosity_level = verbosity
 
 
 # Example usage of the custom_logger function
