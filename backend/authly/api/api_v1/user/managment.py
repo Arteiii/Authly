@@ -1,26 +1,24 @@
 from datetime import datetime
-from typing import List
 from bson import ObjectId
-from email_validator import EmailNotValidError, validate_email
 
 
 from pydantic import EmailStr
 from backend.authly.core.object_id import (
     convert_object_id_to_str,
-    convert_str_to_object_id,
 )
 from backend.authly.core.db.mongo_crud import MongoDBManager
 from backend.authly.core.config import application_config
-from backend.authly.core.log import Logger
-from backend.authly.core.log import LogLevel
+from backend.authly.core.log import Logger, LogLevel
+
+mongo_config = application_config.MongodbSettings  # type: ignore
 
 
 class UserManagment:
     def __init__(
         self,
         collection: str = "Users",
-        db_name: str = application_config.MongodbSettings.MONGODB_NAME,
-        url: str = application_config.MongodbSettings.MONGODB_URL,
+        db_name: str = mongo_config.MONGODB_NAME,
+        url: str = mongo_config.MONGODB_URL,
     ):
         self.mongo_client = MongoDBManager(
             collection_name=collection,

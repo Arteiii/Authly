@@ -2,11 +2,13 @@ import asyncio
 from datetime import datetime
 from authly.core.db.mongo_crud import MongoDBManager
 from authly.core.config import application_config
-from authly.core.log import Logger
-from authly.core.log import LogLevel
+from authly.core.log import Logger, LogLevel
 
-MONGODB_URL = application_config.MongodbSettings.MONGODB_URL
-DB_NAME = f"{application_config.MongodbSettings.MONGODB_NAME}TESTER"
+mongo_config = application_config.MongodbSettings  # type: ignore
+
+
+MONGODB_URL = mongo_config.MONGODB_URL
+DB_NAME = f"{mongo_config.MONGODB_NAME}TESTER"
 COLLECTION_NAME = "Test"
 
 
@@ -31,8 +33,10 @@ async def async_mongo_operations() -> dict:
 
     # Perform a write operation
     data = {"example_key": "example_value", "timestamp": datetime.now()}
-    _, inserted_id = await mongo.write_manager.insert_document(data)
-    if _:
+    status, inserted_id, details = await mongo.write_manager.insert_document(
+        data
+    )
+    if status:
         test_results["write_operation"] = "Passed"
         Logger.log(LogLevel.DEBUG, f"Document inserted with ID: {inserted_id}")
     else:
@@ -41,8 +45,8 @@ async def async_mongo_operations() -> dict:
 
     # Perform a read operation
     query = {"example_key": "example_value"}
-    _, result = await mongo.read_manager.find_one(query)
-    if _:
+    status, result, details = await mongo.read_manager.find_one(query)
+    if status:
         test_results["read_operation"] = "Passed"
         Logger.log(
             LogLevel.DEBUG, f"Document retrieved from MongoDB: {result}"
@@ -53,10 +57,12 @@ async def async_mongo_operations() -> dict:
 
     # Perform an update operation
     update_data = {"set": {"example_key": "updated_value"}}
-    _, update_result = await mongo.update_manager.update_one_document(
-        query, update_data
-    )
-    if _:
+    (
+        status,
+        update_result,
+        detials,
+    ) = await mongo.update_manager.update_one_document(query, update_data)
+    if status:
         test_results["update_operation"] = "Passed"
         Logger.log(LogLevel.DEBUG, "Document updated successfully in MongoDB")
     else:
@@ -64,8 +70,12 @@ async def async_mongo_operations() -> dict:
         Logger.log(LogLevel.ERROR, "Failed to update document in MongoDB")
 
     # Perform a delete operation
-    _, delete_result = await mongo.delete_manager.delete_document(query)
-    if _:
+    (
+        status,
+        delete_result,
+        details,
+    ) = await mongo.delete_manager.delete_document(query)
+    if status:
         test_results["delete_operation"] = "Passed"
         Logger.log(
             LogLevel.DEBUG, "Document deleted successfully from MongoDB"
@@ -85,8 +95,8 @@ async def async_mongo_operations() -> dict:
         )
 
     # Close the MongoDB connection
-    closed, _ = await mongo.close_connection()
-    if closed:
+    status, status, details = await mongo.close_connection()
+    if status:
         test_results["close_connection"] = "Passed"
         Logger.log(LogLevel.DEBUG, "MongoDB connection closed successfully")
     else:
@@ -97,7 +107,7 @@ async def async_mongo_operations() -> dict:
 
 
 async def print_results():
-    Logger.tests(await async_mongo_operations())
+    Logger.tests(await async_mongo_operations())  # type: ignore
 
 
 if __name__ == "__main__":

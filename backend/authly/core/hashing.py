@@ -13,10 +13,14 @@ Date: 24/10/2023
 
 import argon2
 import bcrypt
-from authly.core.config import application_config
+from authly.core.config import application_config, HashingAlgorithmTypes
 
-argon_config = application_config.PasswordConfig.ArgonHashingAlgorithm
-bcrypt_config = application_config.PasswordConfig.BcryptHashingAlgorithm
+config = application_config.PasswordConfig  # type: ignore
+
+
+argon_config = config.ArgonHashingAlgorithm
+bcrypt_config = config.BcryptHashingAlgorithm
+default = config.HASHING_ALGORITHM
 
 
 class Bcrypt:
@@ -122,7 +126,7 @@ class Hasher:
     def verify_password(
         password,
         stored_hash,
-        algorithm=application_config.PasswordConfig.HASHING_ALGORITHM,
+        algorithm: HashingAlgorithmTypes = default,
     ):
         """
         Verify a password against a stored hash\
@@ -147,8 +151,8 @@ class Hasher:
     @staticmethod
     def get_password_hash(
         password,
-        algorithm=application_config.PasswordConfig.HASHING_ALGORITHM,
-    ):
+        algorithm: HashingAlgorithmTypes = default,
+    ) -> str:
         """
         Hash a password using the specified hashing algorithm.
 
@@ -161,7 +165,7 @@ class Hasher:
             str: The hash of the password.
         """
         if algorithm == "bcrypt":
-            return Bcrypt.get_password_hash(password)
+            return str(Bcrypt.get_password_hash(password))
         elif algorithm == "argon2":
             return Argon.get_password_hash(password)
         else:
@@ -175,18 +179,30 @@ if __name__ == "__main__":
         if input("use Bcrypt?").lower().startswith("y"):
             print(
                 Hasher.verify_password(
-                    password=password, stored_hash=hash, algorithm="bcrypt"
+                    password=password,
+                    stored_hash=hash,
+                    algorithm=HashingAlgorithmTypes.BCRYPT,
                 )
             )
 
         print(
             Hasher.verify_password(
-                password=password, stored_hash=hash, algorithm="argon2"
+                password=password,
+                stored_hash=hash,
+                algorithm=HashingAlgorithmTypes.ARGON2,
             )
         )
 
     password = input("enter password:")
     if input("use Bcrypt?").lower().startswith("y"):
-        print(Hasher.get_password_hash(password=password, algorithm="bcrypt"))
+        print(
+            Hasher.get_password_hash(
+                password=password, algorithm=HashingAlgorithmTypes.BCRYPT
+            )
+        )
 
-    print(Hasher.get_password_hash(password=password, algorithm="argon2"))
+    print(
+        Hasher.get_password_hash(
+            password=password, algorithm=HashingAlgorithmTypes.ARGON2
+        )
+    )

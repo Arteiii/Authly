@@ -164,11 +164,11 @@ class MongoDBManager:
             except Exception as e:
                 return (
                     False,
-                    result,
+                    result,  # type: ignore
                     "Error occurred during find_one operation" f"{e}",
                 )
 
-        async def find_many(self, query) -> tuple[bool, str, str]:
+        async def find_many(self, query) -> tuple[bool, list | None, str]:
             """
             Find multiple documents in the MongoDB collection\
                 based on the given query.
@@ -187,11 +187,11 @@ class MongoDBManager:
                 result_list = []
                 async for doc in self.collection.find(query):
                     result_list.append(doc)
-                return (True, result_list, "find many", f"{doc}")
+                return (True, result_list, "find many" f"{query}")
             except Exception as e:
                 return (
                     False,
-                    "Error occurred during find_many operation",
+                    None,
                     "Error occurred during find_many operation" f"{e}",
                 )
 
@@ -450,7 +450,7 @@ async def example_usage():
 
     query = {"age": {"$gt": 25}}
 
-    manager.read_manager.find_many(query)
+    manager.read_manager.find_many(query)  # type: ignore
 
 
 # Running the asyncio event loop

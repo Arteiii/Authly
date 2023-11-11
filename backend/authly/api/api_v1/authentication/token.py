@@ -1,7 +1,6 @@
 import random
 import string
-from authly.core.log import Logger
-from authly.core.log import LogLevel
+from authly.core.log import Logger, LogLevel
 
 
 def generate_token():

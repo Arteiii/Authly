@@ -1,6 +1,6 @@
 import base64
 from typing import Dict, List, Optional
-from backend.authly.core.log import Logger
+from backend.authly.core.log import Logger, LogLevel
 
 from backend.authly.core.config import application_config
 from backend.authly.core.password_validation import (
@@ -87,8 +87,8 @@ class DeleteUser(BaseModel):
 
 
 class DeleteUserResponse(BaseModel):
-    overall_status: bool
-    details: List[Dict[str, bool]]
+    status: bool
+    details: str
 
 
 class UpdateUsername(BaseModel):

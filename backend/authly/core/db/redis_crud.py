@@ -32,6 +32,7 @@ Date: 25/10/2023
 """
 
 
+from asyncio.windows_events import NULL
 import redis
 
 
@@ -53,7 +54,7 @@ class RedisManager:
         self.port = redis_port
         self.db = redis_db
 
-    def connect(self) -> tuple[bool, str, str]:
+    def connect(self) -> tuple[bool, str | None, str]:
         """
         Connect to the Redis server.
 
@@ -71,7 +72,7 @@ class RedisManager:
             return (False, None, f"Error connecting to Redis: {e}")
         return (True, None, "Succesfully!")
 
-    def close(self) -> tuple[bool, str, str]:
+    def close(self) -> tuple[bool, str | None, str]:
         """
         Close the connection to the Redis server.
 
@@ -83,14 +84,14 @@ class RedisManager:
             - str: A descriptive message about the closure result.
         """
         try:
-            self.redis_client.close()
+            self.redis_client.close()  # type: ignore
         except redis.RedisError as e:
             return (False, None, f"Error closing Redis connection: {e}")
         return (True, None, "Succesfully!")
 
     def set(
-        self, key: any, value: any, expiration_seconds: int = None
-    ) -> tuple[bool, str, str]:
+        self, key: str | int, value: str | int, expiration_seconds: int = NULL
+    ) -> tuple[bool, str | None, str]:
         """
         Set a key-value pair in Redis.
 
@@ -110,7 +111,7 @@ class RedisManager:
             if expiration_seconds:
                 self.redis_client.setex(key, expiration_seconds, value)
             else:
-                self.redis_client.set(key, value)
+                self.redis_client.set(key, value)  # type: ignore
         except redis.RedisError as e:
             return (False, None, f"Error setting value in Redis: {e}")
         return (

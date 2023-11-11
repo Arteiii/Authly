@@ -3,24 +3,31 @@ main.py
 """
 import time
 
-from typing import Annotated  # , Union
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-
-# from pydantic import BaseModel, EmailStr, ValidationError, validate_email
 
 from authly.api.api_v1.authentication import token as TokenManager
 from authly.api.api_v1.authentication import user_authorization as ua
+from authly.api.api_v1.user.managment import UserManagment
 from authly.api.api_v1.user import model
 from authly.core.config import application_config
 from authly.core.hashing import Hasher
-from authly.api.api_v1.user.managment import UserManagment
-from authly.core.log import Logger
-from authly.core.log import LogLevel
+from authly.core.log import Logger, LogLevel
+from authly.core.db.redis_crud import RedisManager
 
 app = APIRouter()
-Mongo_URL = application_config.MongodbSettings.MONGODB_URL
+Mongo_URL = application_config.MongodbSettings.MONGODB_URL  # type: ignore
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/user/token")
+
+password_config = application_config.PasswordConfig  # type: ignore
+
+
+class RedisConfig:
+    redis_config = application_config.RedisdbSettings  # type: ignore
+    db = redis_config.REDIS_DB
+    host = redis_config.REDIS_HOST
+    port = redis_config.REDIS_PORT
 
 
 def login_log_reponse(data) -> dict:
@@ -50,7 +57,7 @@ async def hash_password(password) -> str:
 
     Logger.log(
         LogLevel.DEBUG,
-        f"using: {application_config.PasswordConfig.HASHING_ALGORITHM}",
+        f"using: {password_config.HASHING_ALGORITHM}",
         f"Hashed Password: {hashed}",
         f"Hashing Time: {end_time - start_time} seconds",
     )
@@ -90,34 +97,30 @@ async def register_user(user_data: model.UserRegistration):
         Logger.log(LogLevel.ERROR, "Exception while creating user", f"{e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-    finally:
-        if result_bool:
-            return results
-        elif not result_bool:
-            raise HTTPException(
-                status_code=422, detail="Email In use or Blacklisted"
-            )
+    if result_bool:
+        return results
+    elif not result_bool:
+        raise HTTPException(
+            status_code=422, detail="Email In use or Blacklisted"
+        )
 
 
 @app.delete("/")
 async def delete_user(data: model.DeleteUser) -> model.DeleteUserResponse:
     user_manager = UserManagment()
 
-    is_success, results = await user_manager.delete_user(user_id=data.user_id)
-
-    response = model.DeleteUserResponse(
-        overall_status=is_success, details=[results]
+    status, results, details = await user_manager.delete_user_by_id(
+        user_id=str(data.user_id)
     )
 
-    if not is_success:
-        Logger.log(
-            LogLevel.DEBUG, "delete_user", f"{is_success}", f"{response}"
-        )
-    else:
-        Logger.log(
-            LogLevel.DEBUG, f"{is_success}", f"{response}", f"{type(response)}"
-        )
-    return response
+    Logger.log(
+        LogLevel.DEBUG,
+        "delete_user",
+        f"status({status})",
+        f"repsonse({results})",
+        f"detials({details})",
+    )
+    return model.DeleteUserResponse(details=results, status=status)
 
 
 @app.post("/token", response_model=model.Token)
@@ -125,21 +128,24 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     (valid, user) = await ua.authenticate_user(
         email=form_data.username, password=form_data.password
     )
+    redis_manager = RedisManager(
+        RedisConfig.port, RedisConfig.db, RedisConfig.host
+    )
     if not valid:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=401,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
     status, new_token, details = TokenManager.get_new_token(
-        user_id=user.get("id")
-        redis_manager=
+        str(user.get("id")), redis_manager
     )
-    if not _:
+    if not status:
         Logger.log(
             LogLevel.ERROR,
             "Exception while creating token",
-            f"{_}({new_token})",
+            f"{status}({new_token})",
         )
         raise HTTPException(status_code=500, detail="Internal Server Error")
     Logger.log(LogLevel.DEBUG, "New token:", new_token)
@@ -151,35 +157,3 @@ async def read_users_me(
     current_user: Annotated[model.User, Depends(ua.get_current_active_user)]
 ):
     return current_user
-
-
-# async def read_users_me(
-#     current_user: Annotated[User, Depends(get_current_active_user)]
-# ):
-#     return current_user
-
-
-# @app.patch("update_username")
-# async def update_username(
-#     data: model.UpdateUsername, token: Annotated[str, Depends(oauth2_scheme)]
-# ):
-#     try:
-#         user_manager = UserManagment()
-
-#         bool, results = await user_manager.update_username(
-#             user_id=data.user_id,
-#             new_username=data.username,
-#         )
-#         if bool is True:
-#             return "Finished"
-#         else:
-#             raise HTTPException(
-#                 status_code=500, detail="Internal Server Error"
-#             )
-
-#     except ValueError as ve:
-#         raise HTTPException(status_code=400, detail=f"Bad Request: {ve}")
-
-#     except Exception as e:
-#         Logger.log(LogLevel.ERROR, f"Exception while creating user ({e})")
-#         raise HTTPException(status_code=500, detail="Internal Server Error")

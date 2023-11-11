@@ -1,8 +1,7 @@
 import asyncio
 from authly.api.api_router import api_main_router
 from authly.core.config import application_config
-from authly.core.log import Logger
-from authly.core.log import LogLevel
+from authly.core.log import Logger, LogLevel
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +11,8 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from authly.core.status.redis_status import async_redis_operations
 from authly.core.status.mongo_status import async_mongo_operations
 
-Debug = application_config.Debug_Authly.DEBUG
+Debug = application_config.Debug_Authly.DEBUG  # type: ignore
+api_config = application_config.API  # type: ignore
 
 origins = [
     "*"
@@ -54,7 +54,7 @@ else:
     )  # Replace "*" with your trusted hosts
 
 # Include the API router
-app.include_router(api_main_router, prefix=application_config.API.API_ROUTE)
+app.include_router(api_main_router, prefix=api_config.API_ROUTE)
 
 
 # test dbs
@@ -68,7 +68,7 @@ async def tests():
 
     print(combined_results)
 
-    Logger.tests(combined_results)
+    Logger.tests(combined_results)  # type: ignore
 
 
 async def main():
