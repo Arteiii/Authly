@@ -2,6 +2,13 @@
 
 Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
 
+## components
+
+<https://github.com/keenethics/svelte-notifications>,
+<https://tailwindcomponents.com/>,
+<https://github.com/estevanmaito/windmill-dashboard>,
+<https://tailwindui.com/>
+
 ## Creating a project
 
 If you're seeing this, you've probably already done this step. Congrats!

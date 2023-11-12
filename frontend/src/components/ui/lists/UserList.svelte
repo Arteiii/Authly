@@ -1,6 +1,24 @@
 <script>
   import '@src/app.css'
-  export let users = [];
+  export let users = [
+    {
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      image: 'https://placekitten.com/100/100',
+      role: 'Admin',
+      status: true,
+      lastSeen: new Date().toISOString(),
+    },
+    {
+      name: 'Jane Smith',
+      email: 'jane.smith@example.com',
+      image: 'https://placekitten.com/101/101',
+      role: 'User',
+      status: false,
+      lastSeen: new Date(new Date().getTime() - 2 * 60 * 60 * 1000).toISOString(),
+    },
+    // Add more users as needed
+  ];
 </script>
 
 <ul role="list" class="divide-y divide-gray-100">
