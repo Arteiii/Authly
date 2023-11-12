@@ -8,6 +8,7 @@ const config = {
 	kit: {
 		alias: {
 			'@components': './src/components',
+			'@ui': './src/components/ui',
 			'@lib': './src/lib',
 			'@src': './src',
 			'@routes': './src/routes'
