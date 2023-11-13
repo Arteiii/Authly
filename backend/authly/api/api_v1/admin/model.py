@@ -28,3 +28,8 @@ class AdminRegistration(BaseModel):
     def json(self, *args, **kwargs):
         self.password = base64_password.encode_to_base64(self.password)
         return dict(self)
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

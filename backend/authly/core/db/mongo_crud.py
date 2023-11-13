@@ -19,7 +19,7 @@ Subclasses:
 operations are named after the crud operations documentation from mongo:
 https://www.mongodb.com/docs/manual/crud/
 
-Author: Arteii/wavy42
+Author: Arteii
 Date: 25/10/2023
 """
 

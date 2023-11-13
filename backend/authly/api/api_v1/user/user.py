@@ -37,24 +37,6 @@ class RedisConfig:
     port = redis_config.REDIS_PORT
 
 
-# def login_log_reponse(data) -> dict:
-#     return {
-#         "_id": str(data["_id"]),
-#         "ip_address": data["ip_address"],
-#         "password": data["password"],
-#         "username": data["username"],
-#         "event_type": data["event_type"],
-#         "status": data["status"],
-#         "session_duration_minutes": data["session_duration_minutes"],
-#         "additional_info": data["additional_info"],
-#         "url": data["url"],
-#         "method": data["method"],
-#         "headers": data["headers"],
-#         "body": data["body"],
-#         "timestamp": data["timestamp"],
-#     }
-
-
 @app.post("/")
 async def register_user(user_data: model.UserRegistration):
     """
@@ -159,7 +141,7 @@ async def read_users_me(
     return "Hello world"
 
 
-@app.post("/emal")
+@app.post("/email")
 async def update_email(
     update_email: model.UpdateUserEmail,
     current_user: Annotated[
