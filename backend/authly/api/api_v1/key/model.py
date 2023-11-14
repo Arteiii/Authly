@@ -10,4 +10,3 @@ class Delete(BaseModel):
 
 class KeysResponse(BaseModel):
     keys: List[str]
-
