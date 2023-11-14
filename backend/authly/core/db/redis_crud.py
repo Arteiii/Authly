@@ -31,8 +31,7 @@ Author: Arteii
 Date: 25/10/2023
 """
 
-
-from asyncio.windows_events import NULL
+from typing import Optional
 import redis
 
 
@@ -49,113 +48,111 @@ class RedisManager:
             redis_host (str): The host address of the Redis server\
                 (default is "localhost").
         """
-        self.redis_client = None
+        self.redis_client: redis.Redis
         self.host = redis_host
         self.port = redis_port
         self.db = redis_db
 
-    def connect(self) -> tuple[bool, str | None, str]:
+    def connect(self) -> bool:
         """
         Connect to the Redis server.
 
         Returns:
-            A tuple containing:
-            - bool: True if the connection was successful, False otherwise.
-            - str: None.
-            - str: A descriptive message about the connection result.
+            - bool: True if the connection was closed successfully.
+
+        Raises:
+            - AuthenticationError
+            - RedisError: If there is an error during the set operation.
         """
         try:
-            self.redis_client = redis.Redis(
+            self.redis_client: redis.Redis = redis.Redis(
                 host=self.host, port=self.port, decode_responses=True
             )
-        except redis.RedisError as e:
-            return (False, None, f"Error connecting to Redis: {e}")
-        return (True, None, "Succesfully!")
+        except redis.AuthenticationError:
+            raise redis.AuthenticationError
 
-    def close(self) -> tuple[bool, str | None, str]:
+        except redis.RedisError as e:
+            raise redis.RedisError(e)
+
+        return True
+
+    def close(self) -> bool:
         """
         Close the connection to the Redis server.
 
         Returns:
-            A tuple containing:
-            - bool: True if the connection was closed successfully,\
-                False otherwise.
-            - str: None.
-            - str: A descriptive message about the closure result.
+            - bool: True if the connection was closed successfully.
+
+        Raises:
+            RedisError: If there is an error during the set operation.
         """
         try:
             self.redis_client.close()
         except redis.RedisError as e:
-            return (False, None, f"Error closing Redis connection: {e}")
-        return (True, None, "Succesfully!")
+            raise redis.RedisError(e)
+        return True
 
-    def set(
-        self, key: str | int, value: str | int, expiration_seconds: int = NULL
-    ) -> tuple[bool, str | None, str]:
+    def set(self, key: str, value: str, expiration_seconds: int = 0) -> bool:
         """
         Set a key-value pair in Redis.
 
         Args:
-            key (any): The key to set.
-            value (any): The value to set.
+            key (str): The key to set.
+            value (str): The value to set.
             expiration (int): The expiration time for the key-value pair in\
-                seconds (default is None).
+                seconds (default is 0).
 
         Returns:
-            A tuple containing:
-            - bool: True if the set operation was successful, False otherwise.
-            - str: None.
-            - str: A descriptive message about the set operation.
+            - bool: True if the set operation was successful.
+
+        Raises:
+            RedisError: If there is an error during the set operation.
         """
         try:
             if expiration_seconds:
                 self.redis_client.setex(key, expiration_seconds, value)
             else:
                 self.redis_client.set(key, value)
-        except redis.RedisError as e:
-            return (False, None, f"Error setting value in Redis: {e}")
-        return (
-            True,
-            None,
-            "Succesfully inserted:"
-            f"key({key}), value({value}), expiration({expiration_seconds})",
-        )
 
-    def get(self, key: str) -> tuple[bool, str, str]:
+        except redis.RedisError as e:
+            raise redis.RedisError(e)
+
+        return True
+
+    def get(self, key: str) -> str:
         """
         Get the value associated with a key in Redis.
 
         Args:
-            key (any): The key to retrieve.
+            key (str): The key to retrieve.
 
         Returns:
-            A tuple containing:
-            - bool: True if the get operation was successful, False otherwise.
-            - str: The retrieved value if successful, None otherwise.
-            - str: A descriptive message about the get operation.
+            - str of the results
+
+        Raises:
+            RedisError: If there is an error during the set operation.
         """
         try:
             result = self.redis_client.get(key)
-            return (True, result, f"get key({key})")
+            return str(result)
         except redis.RedisError as e:
-            return (False, None, f"Error getting value from Redis: {e}")
+            raise redis.RedisError(e)
 
-    def delete(self, key: any) -> tuple[bool, str, str]:
+    def delete(self, key: str) -> bool:
         """
         Delete a key from Redis.
 
         Args:
-            key (any): The key to delete.
+            key (str): The key to delete.
 
         Returns:
-            A tuple containing:
-            - bool: True if the delete operation was successful,\
-                False otherwise.
-            - str: None.
-            - str: A descriptive message about the delete operation.
+            - bool: True if the delete operation was successful.
+
+        Raises:
+            RedisError: If there is an error during the set operation.
         """
         try:
             self.redis_client.delete(key)
         except redis.RedisError as e:
-            return (False, None, f"Error deleting key from Redis: {e}")
-        return (True, None, f"Deleted: key({key})")
+            raise redis.RedisError(e)
+        return True
