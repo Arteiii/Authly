@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any, Tuple
 
 from fastapi import Depends, HTTPException
 from fastapi.security import (
@@ -61,25 +61,17 @@ async def get_current_user(
 
 async def authenticate_user(
     email: str, password: str, mongo_manager: MongoDBManager
-) -> tuple[bool, dict]:
-    status, user, details = await mongo_manager.read_manager.find_one(
-        {"email": email}
-    )
-    user = convert_object_id_to_str(user)
+) -> dict:
+    try:
+        _, user = await mongo_manager.read_manager.find_one({"email": email})
 
-    if not user:
-        return (
-            False,
-            {"message": "user empty"},
-        )
-    if not await password_manager.verify_password(
-        userdata=user, requested_pw=password
-    ):
-        Logger.log(
-            LogLevel.ERROR,
-        )
-        return (
-            False,
-            {"message": "operation failed"},
-        )
-    return True, user
+    except FileNotFoundError as e:
+        Logger.log(LogLevel.ERROR, "error in authenticate_user:", "except:", e)
+        raise HTTPException(status_code=500, detail="email not found")
+
+    else:
+        user = convert_object_id_to_str(user)
+        if await password_manager.verify_password(user, password):
+            return user
+
+        raise HTTPException(status_code=500, detail="password missmatch")

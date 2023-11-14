@@ -92,7 +92,7 @@ class Argon:
             )
             return hasher.verify(password=password, hash=stored_hash)
         except argon2.exceptions.VerifyMismatchError:
-            return False
+            raise argon2.exceptions.VerifyMismatchError
 
     @staticmethod
     def get_password_hash(password):

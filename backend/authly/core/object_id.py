@@ -1,7 +1,7 @@
 from bson import ObjectId
 
 
-def convert_object_id_to_str(data) -> dict:
+def convert_object_id_to_str(data: dict) -> dict:
     """
     Convert ObjectId to string in a dictionary and rename _id to id.
     """

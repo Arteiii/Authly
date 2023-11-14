@@ -38,15 +38,15 @@ class RedisConfig:
 
 
 @app.post("/")
-async def register_user(user_data: model.UserRegistration):
+async def register_user(
+    user_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+):
     """
     ## Register a user. (V1)
 
     :param user_data: Data required for user registration.
     """
     try:
-        user_manager = UserManagment()
-
         hashed_password = await password_manager.hash_password(
             password=user_data.password
         )
@@ -56,56 +56,65 @@ async def register_user(user_data: model.UserRegistration):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     try:
-        result_bool, results = await user_manager.create_user(
-            username=user_data.username,
-            email=user_data.email,
+        user_manager = UserManagment()
+        _, results = await user_manager.create_user(
+            email=user_data.username,
             role="User",
             password=hashed_password,
         )
 
     except ValueError as ve:
         Logger.log(LogLevel.ERROR, f"Bad Request: {ve}")
-        raise HTTPException(status_code=400, detail="Bad Request")
+        return HTTPException(
+            status_code=400, detail="Email In use or Blacklisted"
+        )
 
     except Exception as e:
         Logger.log(LogLevel.ERROR, "Exception while creating user", f"{e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-    if result_bool:
+    else:
         return results
-    elif not result_bool:
-        raise HTTPException(
-            status_code=500, detail="Email In use or Blacklisted"
-        )
 
 
+# add base 654 vlaidation for passwords
 @app.post("/token", response_model=model.Token)
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    mongo_manager = MongoDBManager(
-        collection_name="Users",
-        db_name=MongoConfig.name,
-        db_url=MongoConfig.url,
-    )
-    (valid, user) = await ua.authenticate_user(
-        form_data.username, form_data.password, mongo_manager
-    )
-    Logger.log(LogLevel.DEBUG, valid, user)
-    if not valid:
-        raise HTTPException(
+    try:
+        mongo_manager = MongoDBManager(
+            collection_name="Users",
+            db_name=MongoConfig.name,
+            db_url=MongoConfig.url,
+        )
+    except Exception as e:
+        Logger.log(LogLevel.ERROR, "Exception in '/token'", f"{e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    try:
+        (valid, user) = await ua.authenticate_user(
+            form_data.username, form_data.password, mongo_manager
+        )
+        Logger.log(LogLevel.DEBUG, valid, user)
+
+    except HTTPException:
+        return HTTPException(
             status_code=401,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    except Exception as e:
+        Logger.log(LogLevel.ERROR, e)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
     redis_manager = RedisManager(
         RedisConfig.port, RedisConfig.db, RedisConfig.host
     )
 
-    (status, data, details) = redis_manager.connect()
+    status = redis_manager.connect()
     Logger.log(
         LogLevel.DEBUG,
         f"status({status})",
-        f"data({data})",
-        f"details({details})",
     )
     status, new_token, details = TokenManager.get_new_token(
         user_id=str(user.get("id")),
@@ -114,11 +123,10 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     )
     # close connections
     redis_manager.close()
-    mongo_manager.close_connection()
+    await mongo_manager.close_connection()
     Logger.log(
         LogLevel.DEBUG,
         f"status({status})",
-        f"data({data})",
         f"details({details})",
     )
     if not status:
@@ -136,7 +144,9 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 async def read_users_me(
     current_user: Annotated[model.User, Depends(ua.get_current_user)]
 ):
-    Logger.log(LogLevel.INFO, "users/me: (get('id'))", current_user.get("id"))
+    Logger.log(
+        LogLevel.INFO, "users/me: (get('id'))", current_user.get("id")  # type: ignore
+    )
 
     return "Hello world"
 

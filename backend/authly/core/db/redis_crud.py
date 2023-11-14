@@ -31,7 +31,6 @@ Author: Arteii
 Date: 25/10/2023
 """
 
-from typing import Optional
 import redis
 
 
@@ -74,7 +73,8 @@ class RedisManager:
         except redis.RedisError as e:
             raise redis.RedisError(e)
 
-        return True
+        else:
+            return True
 
     def close(self) -> bool:
         """
@@ -88,9 +88,12 @@ class RedisManager:
         """
         try:
             self.redis_client.close()
+
         except redis.RedisError as e:
             raise redis.RedisError(e)
-        return True
+
+        else:
+            return True
 
     def set(self, key: str, value: str, expiration_seconds: int = 0) -> bool:
         """
@@ -117,7 +120,8 @@ class RedisManager:
         except redis.RedisError as e:
             raise redis.RedisError(e)
 
-        return True
+        else:
+            return True
 
     def get(self, key: str) -> str:
         """
@@ -134,9 +138,12 @@ class RedisManager:
         """
         try:
             result = self.redis_client.get(key)
-            return str(result)
+
         except redis.RedisError as e:
             raise redis.RedisError(e)
+
+        else:
+            return str(result)
 
     def delete(self, key: str) -> bool:
         """
@@ -153,6 +160,9 @@ class RedisManager:
         """
         try:
             self.redis_client.delete(key)
+
         except redis.RedisError as e:
             raise redis.RedisError(e)
-        return True
+
+        else:
+            return True

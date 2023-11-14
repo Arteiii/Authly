@@ -1,5 +1,6 @@
 from datetime import datetime
 from bson import ObjectId
+from fastapi import HTTPException
 
 
 from pydantic import EmailStr
@@ -27,10 +28,10 @@ class UserManagment:
         )
 
     async def create_user(
-        self, username: str, email: EmailStr, password: str, role: list | str
-    ) -> tuple[bool, dict]:
+        self, email: EmailStr, password: str, role: list | str
+    ) -> dict:
         current_time = datetime.now().isoformat()
-
+        username = email.split("@")[0]
         # Generate a unique user ID
         user_data_dict = {
             "username": username,
@@ -39,51 +40,48 @@ class UserManagment:
             "role": [role],
             "disabled": False,
             "geo_location": "None",
-            "username_history": [
-                {username: {"from": current_time, "to": None}}
-            ],
+            "username_history": [{email: {"from": current_time, "to": None}}],
             "email_history": [{email: {"from": current_time, "to": None}}],
             "keys": [],
         }
 
-        (
-            email_in_use,
-            existing_user,
-            details,
-        ) = await self.mongo_client.read_manager.find_one(
-            {"email": str(email)}
-        )
-
-        if email_in_use:
+        try:
+            email_in_use, _ = await self.mongo_client.read_manager.find_one(
+                {"email": str(email)}
+            )
+        except FileNotFoundError:
             Logger.log(LogLevel.ERROR, "alread registered email")
-            return (False, "Invalid email address")
+            raise ValueError("Email In use or Blacklisted")
 
-        # Insert the user data into the MongoDB collection
-        (
-            status,
-            edited_id,
-            details,
-        ) = await self.mongo_client.write_manager.insert_document(
-            data=user_data_dict
-        )
-        if status is not True:
-            Logger.log(LogLevel.ERROR, f"mongo returned invalid op ({status})")
+        try:
+            # Insert the user data into the MongoDB collection
+            (
+                _,
+                edited_id,
+            ) = await self.mongo_client.write_manager.insert_document(
+                data=user_data_dict
+            )
+            Logger.log(
+                LogLevel.ERROR, f"mongo returned invalid op ({edited_id})"
+            )
 
-        result = {
-            "mongo_state": status,
-            "user_id": edited_id,
-            "username": username,
-            "email": email,
-        }
+        except Exception:
+            raise HTTPException(
+                status_code=500, detail="Internal Server Error"
+            )
 
-        return (True, result)
+        else:
+            return {
+                "user_id": edited_id,
+                "username": username,
+                "email": email,
+            }
 
     async def update_username(self, user_id: str, new_username):
         try:
             (
-                status,
+                _,
                 data,
-                details,
             ) = await self.mongo_client.read_manager.find_one(
                 query={"_id": ObjectId(user_id)}
             )
@@ -124,16 +122,15 @@ class UserManagment:
                 "Error occurred while updating username. read more in logs",
             )
 
-    async def delete_user_by_id(self, user_id: str) -> tuple[bool, str, str]:
+    async def delete_user_by_id(self, user_id: str) -> tuple[bool, str]:
         (
             status,
             data,
-            details,
         ) = await self.mongo_client.delete_manager.delete_document(
             query={"_id": ObjectId(user_id)}
         )
 
-        return (status, data, details)
+        return (status, data)
 
     # reworked:
     async def get_user_data_by_id(
@@ -142,7 +139,6 @@ class UserManagment:
         (
             status,
             data,
-            details,
         ) = await self.mongo_client.read_manager.find_one(
             query={"_id": ObjectId(user_id)}
         )
@@ -151,7 +147,6 @@ class UserManagment:
             f"user data by id status({status})",
             f"user_id({user_id})",
             f"data({data})",
-            f"details({details})",
         )
         return (status, convert_object_id_to_str(data))
 
@@ -161,7 +156,6 @@ class UserManagment:
         (
             status,
             data,
-            details,
         ) = await self.mongo_client.read_manager.find_one(
             {"email": str(email)}
         )
@@ -171,7 +165,6 @@ class UserManagment:
             f"status({status})",
             f"email({email})",
             f"data({data})",
-            f"details({details})",
         )
         return (status, convert_object_id_to_str(data))
 
@@ -181,7 +174,6 @@ class UserManagment:
         (
             status,
             data,
-            details,
         ) = await self.mongo_client.read_manager.find_one(
             query={"username": username}
         )
@@ -191,6 +183,5 @@ class UserManagment:
             f"status({status})",
             f"email({username})",
             f"data({data})",
-            f"details({details})",
         )
         return (status, convert_object_id_to_str(data))

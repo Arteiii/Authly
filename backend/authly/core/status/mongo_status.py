@@ -21,7 +21,7 @@ mongo = MongoDBManager(
 # Test function to check the MongoDB operations
 async def async_mongo_operations() -> dict:
     test_results = {}
-    Logger.set_verbosity_level(level="DEVELOPMENT")
+    Logger.debug_log(True)
 
     # Connect to MongoDB
     connected = await mongo.client.server_info()
@@ -33,9 +33,7 @@ async def async_mongo_operations() -> dict:
 
     # Perform a write operation
     data = {"example_key": "example_value", "timestamp": datetime.now()}
-    status, inserted_id, details = await mongo.write_manager.insert_document(
-        data
-    )
+    status, inserted_id = await mongo.write_manager.insert_document(data)
     if status:
         test_results["write_operation"] = "Passed"
         Logger.log(LogLevel.DEBUG, f"Document inserted with ID: {inserted_id}")
@@ -45,7 +43,7 @@ async def async_mongo_operations() -> dict:
 
     # Perform a read operation
     query = {"example_key": "example_value"}
-    status, result, details = await mongo.read_manager.find_one(query)
+    status, result = await mongo.read_manager.find_one(query)
     if status:
         test_results["read_operation"] = "Passed"
         Logger.log(
@@ -59,8 +57,7 @@ async def async_mongo_operations() -> dict:
     update_data = {"set": {"example_key": "updated_value"}}
     (
         status,
-        update_result,
-        detials,
+        _,
     ) = await mongo.update_manager.update_one_document(query, update_data)
     if status:
         test_results["update_operation"] = "Passed"
@@ -72,8 +69,7 @@ async def async_mongo_operations() -> dict:
     # Perform a delete operation
     (
         status,
-        delete_result,
-        details,
+        _,
     ) = await mongo.delete_manager.delete_document(query)
     if status:
         test_results["delete_operation"] = "Passed"
@@ -95,7 +91,7 @@ async def async_mongo_operations() -> dict:
         )
 
     # Close the MongoDB connection
-    status, status, details = await mongo.close_connection()
+    status, status = await mongo.close_connection()
     if status:
         test_results["close_connection"] = "Passed"
         Logger.log(LogLevel.DEBUG, "MongoDB connection closed successfully")
