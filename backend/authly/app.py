@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 from authly.api.api_router import api_main_router
 from authly.core.config import application_config
 from authly.core.log import Logger, LogLevel
@@ -20,7 +21,16 @@ origins = [
 # (default: "*")
 
 
-app = FastAPI()
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Startup")
+    Logger.disable()
+    yield
+    print("Shutdown")
+
+
+app = FastAPI(lifespan=lifespan)
+
 Logger.debug_log(Debug)
 
 if Debug is True:
@@ -56,6 +66,11 @@ else:
 
 # Include the API router
 app.include_router(api_main_router, prefix=api_config.API_ROUTE)
+
+
+@app.get("/")
+async def hello_world():
+    return {"msg": "Hello World"}
 
 
 # test dbs

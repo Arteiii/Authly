@@ -86,13 +86,22 @@ class Logger:
         LogLevel.TESTS: "TESTS",
     }
     output_debug_log: bool = False
+    disable_log: bool = False
 
     @staticmethod
     def debug_log(level: bool = False):
         Logger.output_debug_log = level
 
     @staticmethod
+    def disable(level: bool = False):
+        print("Logger disabled for testing")
+        Logger.disable_log = level
+
+    @staticmethod
     def log(level: LogLevel = LogLevel.INFO, *args):
+        if Logger.disable_log:
+            pass
+
         NAME = Logger.LOG_LEVEL_NAMES.get(level, "INFO")
         color = Logger.LOG_LEVEL_COLORS.get(level, "WHITE")
         COL = getattr(Fore, color)

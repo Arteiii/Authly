@@ -1,4 +1,3 @@
-from uu import Error
 import argon2
 from authly.core.hashing import Hasher
 from authly.core.log import Logger, LogLevel
