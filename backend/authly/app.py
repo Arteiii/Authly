@@ -80,7 +80,7 @@ async def main():
 if __name__ == "__main__":
     import uvicorn
 
-    Logger.set_verbosity_level("DEVELOPMENT")
+    Logger.debug_log(False)
 
     asyncio.run(main())
 
