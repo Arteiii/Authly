@@ -27,7 +27,7 @@ async def hash_password(password) -> str:
     return hashed
 
 
-async def verify_password(password, stored_hash):
+async def verify_password(password: str, stored_hash: str) -> bool:
     try:
         start_time = time.time()  # Record the start time
 

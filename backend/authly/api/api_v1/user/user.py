@@ -2,6 +2,7 @@
 main.py
 """
 from typing import Annotated
+from authly.api.api_v1.db.connect import get_mongo_manager
 from authly.core.db.mongo_crud import MongoDBManager
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -11,8 +12,8 @@ from authly.api.api_v1.authentication import (
     password_hashing as password_manager,
 )
 from authly.api.api_v1.authentication import user_authorization as ua
-from authly.api.api_v1.user.managment import UserManagment
-from authly.api.api_v1.user import model
+from authly.api.api_v1.user import managment
+from authly.api.api_v1.model import model
 from authly.core.config import application_config
 from authly.core.log import Logger, LogLevel
 from authly.core.db.redis_crud import RedisManager
@@ -22,6 +23,8 @@ Mongo_URL = application_config.MongodbSettings.MONGODB_URL  # type: ignore
 app = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/user/token")
+
+UserCollectionName = "Users"
 
 
 class MongoConfig:
@@ -46,6 +49,7 @@ async def register_user(
 
     :param user_data: Data required for user registration.
     """
+
     try:
         hashed_password = await password_manager.hash_password(
             password=user_data.password
@@ -56,11 +60,11 @@ async def register_user(
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     try:
-        user_manager = UserManagment()
-        _, results = await user_manager.create_user(
+        results = await managment.create_user(
             email=user_data.username,
-            role="User",
+            role=["User"],
             password=hashed_password,
+            mongo_client=get_mongo_manager(UserCollectionName),
         )
 
     except ValueError as ve:
@@ -81,20 +85,11 @@ async def register_user(
 @app.post("/token", response_model=model.Token)
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     try:
-        mongo_manager = MongoDBManager(
-            collection_name="Users",
-            db_name=MongoConfig.name,
-            db_url=MongoConfig.url,
-        )
-    except Exception as e:
-        Logger.log(LogLevel.ERROR, "Exception in '/token'", f"{e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
-
-    try:
-        (valid, user) = await ua.authenticate_user(
+        mongo_manager = get_mongo_manager(UserCollectionName)
+        user = await ua.authenticate_user(
             form_data.username, form_data.password, mongo_manager
         )
-        Logger.log(LogLevel.DEBUG, valid, user)
+        Logger.log(LogLevel.DEBUG, user)
 
     except HTTPException:
         return HTTPException(
@@ -107,35 +102,16 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
         Logger.log(LogLevel.ERROR, e)
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-    redis_manager = RedisManager(
-        RedisConfig.port, RedisConfig.db, RedisConfig.host
-    )
-
-    status = redis_manager.connect()
-    Logger.log(
-        LogLevel.DEBUG,
-        f"status({status})",
-    )
-    status, new_token, details = TokenManager.get_new_token(
+    new_token = TokenManager.get_new_token(
         user_id=str(user.get("id")),
-        redis_manager=redis_manager,
         expiration_time_minutes=240,
     )
     # close connections
-    redis_manager.close()
     await mongo_manager.close_connection()
     Logger.log(
         LogLevel.DEBUG,
-        f"status({status})",
-        f"details({details})",
+        f"new token({new_token})",
     )
-    if not status:
-        Logger.log(
-            LogLevel.ERROR,
-            "Exception while creating token",
-            f"{status}({new_token})",
-        )
-        raise HTTPException(status_code=500, detail="Internal Server Error")
     Logger.log(LogLevel.DEBUG, "New token:", new_token)
     return {"access_token": new_token, "token_type": "bearer"}
 

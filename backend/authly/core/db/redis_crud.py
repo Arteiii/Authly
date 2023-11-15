@@ -143,6 +143,9 @@ class RedisManager:
             raise redis.RedisError(e)
 
         else:
+            if result is None:
+                raise ValueError
+
             return str(result)
 
     def delete(self, key: str) -> bool:

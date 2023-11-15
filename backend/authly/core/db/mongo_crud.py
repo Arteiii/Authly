@@ -141,7 +141,7 @@ class MongoDBManager:
             """
             self.collection = collection
 
-        async def find_one(self, query: dict) -> Tuple[bool, Any]:
+        async def find_one(self, query: dict) -> Tuple[bool, dict]:
             """
             Find one document in the MongoDB collection based on\
                 the given query.
@@ -152,9 +152,11 @@ class MongoDBManager:
             Returns:
                 A tuple containing:
                 - bool: True if a document was found, False otherwise.
-                - str or None: The found document if successful,\
-                    None otherwise.
-                - str: A descriptive message about the find_one result.
+                - str with the reults
+
+            Raise:
+                - Exception(f"An unexpected error occurred: {e}")
+                - FileNotFoundError("Mongo search Result is False")
             """
             try:
                 result = await self.collection.find_one(query)
