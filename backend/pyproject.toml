@@ -24,6 +24,7 @@ snakeviz = "^2.2.0"
 httpx = "^0.25.1"
 asgi-lifespan = "^2.1.0"
 pytest-asyncio = "^0.21.1"
+pytest-cov = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core"]
