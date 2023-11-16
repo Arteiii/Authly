@@ -10,200 +10,108 @@ password hashing and verification using various algorithms.
 Author: Arteii
 Date: 24/10/2023
 """
+from typing import Optional
 
-from typing import Union
 import argon2
-import bcrypt
-from authly.core.config import application_config, HashingAlgorithmTypes
+from authly.core.config import application_config
 
 config = application_config.PasswordConfig  # type: ignore
-
-
 argon_config = config.ArgonHashingAlgorithm
-bcrypt_config = config.BcryptHashingAlgorithm
-default = config.HASHING_ALGORITHM
 
 
-class Bcrypt:
+def get_argon2_manager(
+    time_cost: int = argon_config.TIME_COST,
+    memory_cost: int = argon_config.MEMORY_COST,
+    parallelism: int = argon_config.PARALLELISM,
+    hash_len: int = argon_config.HASH_LEN,
+    salt_len: int = argon_config.SALT_LEN,
+    encoding: str = argon_config.ENCODING,
+) -> argon2.PasswordHasher:
     """
-    A class for handling password hashing and verification using Bcrypt.
+    Get an instance of the Argon2 password hasher with the specified\
+        configuration.
+
+    Args:
+        time_cost (int): The number of iterations to use (time cost).
+        memory_cost (int): The amount of memory to use in kibibytes\
+            (memory cost).
+        parallelism (int): The degree of parallelism to use (parallelism).
+        hash_len (int): The length of the hash to produce (hash length).
+        salt_len (int): The length of the randomly generated salt\
+            (salt length).
+        encoding (str): The character encoding to use.
+
+    Returns:
+        argon2.PasswordHasher: An instance of the Argon2 password hasher.
     """
-
-    @staticmethod
-    def verify_password(stored_hash: bytes, password: str) -> bool:
-        """
-        Verify a password against a stored Bcrypt hash.
-
-        Args:
-            stored_hash (bytes): The stored Bcrypt hash.
-            password (str): The password to be verified.
-
-        Returns:
-            bool: True if the password is valid, False otherwise.
-        """
-        if not isinstance(password, str):
-            raise TypeError("Password must be a string")
-        return bcrypt.checkpw(password.encode("utf-8"), stored_hash)
-
-    @staticmethod
-    def get_password_hash(password: str) -> bytes:
-        """
-        Hash a password using Bcrypt.
-
-        Args:
-            password (str): The password to be hashed.
-
-        Returns:
-            bytes: The Bcrypt hash of the password.
-        """
-        if not isinstance(password, str):
-            raise TypeError("Password must be a string")
-        salt = bcrypt.gensalt(rounds=bcrypt_config.ROUNDS)
-        hashed_password = bcrypt.hashpw(
-            password.encode(bcrypt_config.ENCODING), salt
-        )
-        return hashed_password
+    return argon2.PasswordHasher(
+        time_cost, memory_cost, parallelism, hash_len, salt_len, encoding
+    )
 
 
-class Argon:
+def verify_password(
+    password: str,
+    stored_hash: str,
+    argon2_manager: Optional[argon2.PasswordHasher] = None,
+) -> bool:
     """
-    A class for handling password hashing and verification using Argon2.
+    Verify a password against a stored Argon2 hash.
+
+    Args:
+        password (str): The password to be verified.
+        stored_hash (str): The stored Argon2 hash.
+        argon2_manager (argon2.PasswordHasher): Optional Argon2 manager.
+
+    Returns:
+        bool: True if the password is valid, False otherwise.
     """
-
-    @staticmethod
-    def verify_password(password, stored_hash):
-        """
-        Verify a password against a stored Argon2 hash.
-
-        Args:
-            password (str): The password to be verified.
-            stored_hash (str): The stored Argon2 hash.
-
-        Returns:
-            bool: True if the password is valid, False otherwise.
-        """
-        try:
-            hasher = argon2.PasswordHasher(
-                time_cost=argon_config.TIME_COST,
-                memory_cost=argon_config.MEMORY_COST,
-                parallelism=argon_config.PARALLELISM,
-                hash_len=argon_config.HASH_LEN,
-                salt_len=argon_config.SALT_LEN,
-                encoding=argon_config.ENCODING,
-            )
-            return hasher.verify(password=password, hash=stored_hash)
-        except argon2.exceptions.VerifyMismatchError:
-            raise argon2.exceptions.VerifyMismatchError
-
-    @staticmethod
-    def get_password_hash(password):
-        """
-        Hash a password using Argon2.
-
-        Args:
-            password (str): The password to be hashed.
-
-        Returns:
-            str: The Argon2 hash of the password.
-        """
-        hasher = argon2.PasswordHasher(
-            time_cost=argon_config.TIME_COST,
-            memory_cost=argon_config.MEMORY_COST,
-            parallelism=argon_config.PARALLELISM,
-            hash_len=argon_config.HASH_LEN,
-            salt_len=argon_config.SALT_LEN,
-            encoding=argon_config.ENCODING,
-        )
-        return hasher.hash(password)
+    argon2_manager = argon2_manager or get_argon2_manager()
+    return argon2_manager.verify(stored_hash, password)
 
 
-class Hasher:
+def get_password_hash(
+    password: str,
+    argon2_manager: Optional[argon2.PasswordHasher] = None,
+) -> str:
     """
-    A class for handling password hashing and
-    verification using various algorithms.
+    Hash a password using Argon2.
+
+    Args:
+        password (str): The password to be hashed.
+        argon2_manager (argon2.PasswordHasher): Optional Argon2 manager.
+
+    Returns:
+        str: The Argon2 hash of the password.
     """
-
-    @staticmethod
-    def verify_password(
-        password,
-        stored_hash,
-        algorithm: HashingAlgorithmTypes = default,
-    ):
-        """
-        Verify a password against a stored hash\
-            using the specified hashing algorithm.
-
-        Args:
-            password (str): The password to be verified.
-            stored_hash (str): The stored hash.
-            algorithm (str): The hashing algorithm to use\
-                (either "bcrypt" or "argon2").
-
-        Returns:
-            bool: True if the password is valid, False otherwise.
-        """
-        if algorithm == "bcrypt":
-            return Bcrypt.verify_password(stored_hash, password)
-        elif algorithm == "argon2":
-            return Argon.verify_password(password, stored_hash)
-        else:
-            raise ValueError("Invalid hashing algorithm")
-
-    @staticmethod
-    def get_password_hash(
-        password,
-        algorithm: HashingAlgorithmTypes = default,
-    ) -> Union[str, bytes]:
-        """
-        Hash a password using the specified hashing algorithm.
-
-        Args:
-            password (str): The password to be hashed.
-            algorithm (str): The hashing algorithm to use\
-                (either "bcrypt" or "argon2").
-
-        Returns:
-            str: The hash of the password.
-        """
-        if algorithm == "bcrypt":
-            return Bcrypt.get_password_hash(password)
-        elif algorithm == "argon2":
-            return Argon.get_password_hash(password)
-        else:
-            raise ValueError("Invalid hashing algorithm")
+    argon2_manager = argon2_manager or get_argon2_manager()
+    return argon2_manager.hash(password)
 
 
 if __name__ == "__main__":
+    argon2_manager = get_argon2_manager(
+        12,
+        256,
+        4,
+        32,
+        64,
+        "utf-8",
+    )
     if input("compare hash with pw?").lower().startswith("y"):
         password = input("enter password:")
         hash = input("enter hash:")
-        if input("use Bcrypt?").lower().startswith("y"):
-            print(
-                Hasher.verify_password(
-                    password=password,
-                    stored_hash=hash,
-                    algorithm=HashingAlgorithmTypes.BCRYPT,
-                )
-            )
-
         print(
-            Hasher.verify_password(
+            verify_password(
                 password=password,
                 stored_hash=hash,
-                algorithm=HashingAlgorithmTypes.ARGON2,
+                argon2_manager=argon2_manager,
             )
         )
 
     password = input("enter password:")
-    if input("use Bcrypt?").lower().startswith("y"):
-        print(
-            Hasher.get_password_hash(
-                password=password, algorithm=HashingAlgorithmTypes.BCRYPT
-            )
-        )
 
     print(
-        Hasher.get_password_hash(
-            password=password, algorithm=HashingAlgorithmTypes.ARGON2
+        get_password_hash(
+            password=password,
+            argon2_manager=argon2_manager,
         )
     )

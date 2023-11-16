@@ -19,11 +19,6 @@
   },
   "PasswordConfig": {
     "USE_PASSWORD_HASHING": true,
-    "HASHING_ALGORITHM": "argon2",
-    "BcryptHashingAlgorithm": {
-      "ROUNDS": 12,
-      "ENCODING": "utf-8"
-    },
     "ArgonHashingAlgorithm": {
       "TIME_COST": 12,
       "MEMORY_COST": 512,

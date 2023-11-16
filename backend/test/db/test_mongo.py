@@ -11,11 +11,8 @@ collection_name = "test_collection"
 
 
 async def clear_collection(manager: MongoDBManager):
-    try:
-        result = await manager.delete_manager.delete_many_documents({})
-        return True, result, "Collection cleared successfully"
-    except Exception as e:
-        raise Exception(f"An unexpected error occurred: {e}")
+    result = await manager.delete_manager.delete_many_documents({})
+    return True, result, "Collection cleared successfully"
 
 
 @pytest.fixture
@@ -113,8 +110,3 @@ async def test_delete_many_documents(mongodb_manager: MongoDBManager):
 async def test_close_connection(mongodb_manager: MongoDBManager):
     result, _ = await mongodb_manager.close_connection()
     assert result is True
-
-
-# Running the tests
-if __name__ == "__main__":
-    pytest.main(["-v"])

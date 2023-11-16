@@ -5,6 +5,7 @@ from authly.api.api_v1.db.connect import get_mongo_manager, get_redis_manager
 from authly.core.db.redis_crud import RedisManager
 
 from fastapi import Depends, HTTPException
+from fastapi.exceptions import ValidationException
 from fastapi.security import (
     OAuth2PasswordBearer,
 )  # , OAuth2PasswordRequestForm
@@ -70,7 +71,11 @@ async def authenticate_user(
     else:
         stored_hash = user["password"]
         user = convert_object_id_to_str(user)
-        if await password_manager.verify_password(password, stored_hash):
-            return user
+        try:
+            await password_manager.verify_password(password, stored_hash)
 
-        raise ValidationErr("password missmatch")
+        except ValidationException:
+            raise ValidationErr("password missmatch")
+
+        else:
+            return user

@@ -1,4 +1,3 @@
-import asyncio
 import contextlib
 from authly.api.api_router import api_main_router
 from authly.core.config import application_config
@@ -9,8 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from authly.core.status.redis_status import async_redis_operations
-from authly.core.status.mongo_status import async_mongo_operations
 
 Debug = application_config.Debug_Authly.DEBUG  # type: ignore
 api_config = application_config.API  # type: ignore
@@ -72,30 +69,10 @@ async def hello_world():
     return {"msg": "Hello World"}
 
 
-# test dbs
-async def tests():
-    tasks = [async_mongo_operations(), async_redis_operations()]
-    results = await asyncio.gather(*tasks)
-
-    combined_results = {}
-    for result in results:
-        combined_results.update(result)
-
-    print(combined_results)
-
-    Logger.tests(combined_results)  # type: ignore
-
-
-async def main():
-    await tests()
-
-
 # Debug/development mode only
 if __name__ == "__main__":
     import uvicorn
 
     Logger.debug_log(False)
-
-    asyncio.run(main())
 
     uvicorn.run("app:app", host="localhost", port=8000)

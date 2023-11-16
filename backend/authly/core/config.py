@@ -5,16 +5,8 @@ It reads a JSON file and validates it against a predefined Pydantic model.
 
 import os
 import json
-from enum import Enum
 from pydantic_settings import BaseSettings
 from authly.core.log import Logger, LogLevel
-
-
-class HashingAlgorithmTypes(str, Enum):
-    """Enum class for hashing algorithm types."""
-
-    BCRYPT = "bcrypt"
-    ARGON2 = "argon2"  # default
 
 
 ############################################################
@@ -94,21 +86,6 @@ class API(BaseSettings):
     API_V2: API_V2
 
 
-class BcryptHashingAlgorithm(BaseSettings):
-    """
-    Configuration settings for the Bcrypt password hashing algorithm.
-
-    Attributes:
-        ROUNDS (int):\
-            The number of rounds for Bcrypt. Default is 12.
-        ENCODING (str):\
-            The character encoding used for hashing, e.g., 'utf-8'.
-    """
-
-    ROUNDS: int = 12
-    ENCODING: str = "utf-8"
-
-
 class ArgonHashingAlgorithm(BaseSettings):
     """
     Configuration settings for the Argon2 password hashing algorithm.
@@ -161,8 +138,6 @@ class PasswordConfig(BaseSettings):
     """
 
     USE_PASSWORD_HASHING: bool = True
-    HASHING_ALGORITHM: HashingAlgorithmTypes = HashingAlgorithmTypes.ARGON2
-    BcryptHashingAlgorithm: BcryptHashingAlgorithm
     ArgonHashingAlgorithm: ArgonHashingAlgorithm
     DEFAULT_PASSWORD_MIN_LENGTH: int = 11
     DEFAULT_PASSWORD_MAX_LENGTH: int = 50

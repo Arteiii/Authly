@@ -28,14 +28,9 @@ def check_dependencies():
 
 
 def print_logo(col, file_path: str = "./ascii_art.txt"):
-    try:
-        with open(file_path, "r") as file:
-            ascii_art = file.read()
-            print(f"{col}{ascii_art}")
-    except FileNotFoundError:
-        print(f"File not found: {file_path}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    with open(file_path, "r") as file:
+        ascii_art = file.read()
+        print(f"{col}{ascii_art}")
 
 
 def log_basic_config(path, base_path):

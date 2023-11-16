@@ -48,9 +48,9 @@ def format_value(value):
 
 def print_sublist(
     COL,
-    item_value: str = None,
-    max_item_length: str = None,
-    item_key: str = None,
+    item_value: str = "",
+    max_item_length: str = "",
+    item_key: str = "",
 ):
     print(
         f"{COL}|{Fore.RESET}   - "
