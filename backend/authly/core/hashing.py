@@ -11,12 +11,17 @@ Author: Arteii
 Date: 24/10/2023
 """
 
+from typing import Union
 import argon2
 import bcrypt
-from authly.core.config import application_config
+from authly.core.config import application_config, HashingAlgorithmTypes
 
-argon_config = application_config.PasswordConfig.ArgonHashingAlgorithm
-bcrypt_config = application_config.PasswordConfig.BcryptHashingAlgorithm
+config = application_config.PasswordConfig  # type: ignore
+
+
+argon_config = config.ArgonHashingAlgorithm
+bcrypt_config = config.BcryptHashingAlgorithm
+default = config.HASHING_ALGORITHM
 
 
 class Bcrypt:
@@ -25,7 +30,7 @@ class Bcrypt:
     """
 
     @staticmethod
-    def verify_password(stored_hash, password):
+    def verify_password(stored_hash: bytes, password: str) -> bool:
         """
         Verify a password against a stored Bcrypt hash.
 
@@ -36,13 +41,12 @@ class Bcrypt:
         Returns:
             bool: True if the password is valid, False otherwise.
         """
-        return bcrypt.checkpw(
-            password.encode(bcrypt_config.ENCODING),
-            stored_hash,
-        )
+        if not isinstance(password, str):
+            raise TypeError("Password must be a string")
+        return bcrypt.checkpw(password.encode("utf-8"), stored_hash)
 
     @staticmethod
-    def get_password_hash(password):
+    def get_password_hash(password: str) -> bytes:
         """
         Hash a password using Bcrypt.
 
@@ -52,10 +56,11 @@ class Bcrypt:
         Returns:
             bytes: The Bcrypt hash of the password.
         """
+        if not isinstance(password, str):
+            raise TypeError("Password must be a string")
         salt = bcrypt.gensalt(rounds=bcrypt_config.ROUNDS)
         hashed_password = bcrypt.hashpw(
-            password.encode(bcrypt_config.ENCODING),
-            salt,
+            password.encode(bcrypt_config.ENCODING), salt
         )
         return hashed_password
 
@@ -88,7 +93,7 @@ class Argon:
             )
             return hasher.verify(password=password, hash=stored_hash)
         except argon2.exceptions.VerifyMismatchError:
-            return False
+            raise argon2.exceptions.VerifyMismatchError
 
     @staticmethod
     def get_password_hash(password):
@@ -122,7 +127,7 @@ class Hasher:
     def verify_password(
         password,
         stored_hash,
-        algorithm=application_config.PasswordConfig.HASHING_ALGORITHM,
+        algorithm: HashingAlgorithmTypes = default,
     ):
         """
         Verify a password against a stored hash\
@@ -147,8 +152,8 @@ class Hasher:
     @staticmethod
     def get_password_hash(
         password,
-        algorithm=application_config.PasswordConfig.HASHING_ALGORITHM,
-    ):
+        algorithm: HashingAlgorithmTypes = default,
+    ) -> Union[str, bytes]:
         """
         Hash a password using the specified hashing algorithm.
 
@@ -175,18 +180,30 @@ if __name__ == "__main__":
         if input("use Bcrypt?").lower().startswith("y"):
             print(
                 Hasher.verify_password(
-                    password=password, stored_hash=hash, algorithm="bcrypt"
+                    password=password,
+                    stored_hash=hash,
+                    algorithm=HashingAlgorithmTypes.BCRYPT,
                 )
             )
 
         print(
             Hasher.verify_password(
-                password=password, stored_hash=hash, algorithm="argon2"
+                password=password,
+                stored_hash=hash,
+                algorithm=HashingAlgorithmTypes.ARGON2,
             )
         )
 
     password = input("enter password:")
     if input("use Bcrypt?").lower().startswith("y"):
-        print(Hasher.get_password_hash(password=password, algorithm="bcrypt"))
+        print(
+            Hasher.get_password_hash(
+                password=password, algorithm=HashingAlgorithmTypes.BCRYPT
+            )
+        )
 
-    print(Hasher.get_password_hash(password=password, algorithm="argon2"))
+    print(
+        Hasher.get_password_hash(
+            password=password, algorithm=HashingAlgorithmTypes.ARGON2
+        )
+    )

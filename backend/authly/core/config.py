@@ -7,8 +7,7 @@ import os
 import json
 from enum import Enum
 from pydantic_settings import BaseSettings
-from authly.core.log import Logger
-from authly.core.log import LogLevel
+from authly.core.log import Logger, LogLevel
 
 
 class HashingAlgorithmTypes(str, Enum):
@@ -162,7 +161,7 @@ class PasswordConfig(BaseSettings):
     """
 
     USE_PASSWORD_HASHING: bool = True
-    HASHING_ALGORITHM: HashingAlgorithmTypes = "argon2"
+    HASHING_ALGORITHM: HashingAlgorithmTypes = HashingAlgorithmTypes.ARGON2
     BcryptHashingAlgorithm: BcryptHashingAlgorithm
     ArgonHashingAlgorithm: ArgonHashingAlgorithm
     DEFAULT_PASSWORD_MIN_LENGTH: int = 11
@@ -315,7 +314,7 @@ def check_file(file_name):
             parent_directory, "config_temp", file_name
         )
 
-        Logger.log(LogLevel.INFO, "JSON file path:", f"{json_file_path}")
+        Logger.log(LogLevel.DEBUG, "JSON file path:", f"{json_file_path}")
 
         # Load JSON file
         with open(json_file_path, encoding="utf-8") as f:
@@ -337,6 +336,7 @@ def validate_config(data):
 
     except Exception as e:
         Logger.log(
+            LogLevel.ERROR,
             "An error occurred while parsing the configuration data:",
             f"Error details: {e}",
         )

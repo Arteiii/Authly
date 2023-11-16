@@ -85,14 +85,23 @@ class Logger:
         LogLevel.DEBUG: "DEBUG",
         LogLevel.TESTS: "TESTS",
     }
-    verbosity_level = "DEV"
+    output_debug_log: bool = False
+    disable_log: bool = False
 
     @staticmethod
-    def set_verbosity_level(level):
-        Logger.verbosity_level = level
+    def debug_log(level: bool = False):
+        Logger.output_debug_log = level
+
+    @staticmethod
+    def disable(level: bool = False):
+        print("Logger disabled for testing")
+        Logger.disable_log = level
 
     @staticmethod
     def log(level: LogLevel = LogLevel.INFO, *args):
+        if Logger.disable_log:
+            pass
+
         NAME = Logger.LOG_LEVEL_NAMES.get(level, "INFO")
         color = Logger.LOG_LEVEL_COLORS.get(level, "WHITE")
         COL = getattr(Fore, color)
@@ -158,10 +167,6 @@ class Logger:
             args and isinstance(args[0], dict) and len(args[0]) > 1
         ):
             footer(COL)
-
-    @staticmethod
-    def set_verbosity(verbosity):
-        Logger.verbosity_level = verbosity
 
 
 # Example usage of the custom_logger function
