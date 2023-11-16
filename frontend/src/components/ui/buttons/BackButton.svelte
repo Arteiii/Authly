@@ -7,7 +7,7 @@
 	<a href={destination}>
 		<button
 			type="button"
-			class="w-full flex items-center justify-center w-1/2 px-5 py-2 text-sm font-semibold leading-6 text-gray-900 transition-colors duration-200 gap-x-2 sm:w-auto"
+			class="w-full flex items-center justify-center px-5 py-2 text-sm font-semibold leading-6 text-gray-900 transition-colors duration-200 gap-x-2 sm:w-auto dark:text-gray-200"
 		>
 			<span>&larr; Go back</span>
 		</button>

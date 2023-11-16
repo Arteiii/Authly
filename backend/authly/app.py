@@ -1,8 +1,8 @@
 import asyncio
+import contextlib
 from authly.api.api_router import api_main_router
 from authly.core.config import application_config
-from authly.core.log import Logger
-from authly.core.log import LogLevel
+from authly.core.log import Logger, LogLevel
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +12,8 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from authly.core.status.redis_status import async_redis_operations
 from authly.core.status.mongo_status import async_mongo_operations
 
-Debug = application_config.Debug_Authly.DEBUG
+Debug = application_config.Debug_Authly.DEBUG  # type: ignore
+api_config = application_config.API  # type: ignore
 
 origins = [
     "*"
@@ -20,7 +21,16 @@ origins = [
 # (default: "*")
 
 
-app = FastAPI()
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Startup")
+    yield
+    print("Shutdown")
+
+
+app = FastAPI(lifespan=lifespan)
+
+Logger.debug_log(Debug)
 
 if Debug is True:
     Logger.log(LogLevel.WARNING, "Security Middleware Disabled for debugging")
@@ -54,7 +64,12 @@ else:
     )  # Replace "*" with your trusted hosts
 
 # Include the API router
-app.include_router(api_main_router, prefix=application_config.API.API_ROUTE)
+app.include_router(api_main_router, prefix=api_config.API_ROUTE)
+
+
+@app.get("/")
+async def hello_world():
+    return {"msg": "Hello World"}
 
 
 # test dbs
@@ -68,7 +83,7 @@ async def tests():
 
     print(combined_results)
 
-    Logger.tests(combined_results)
+    Logger.tests(combined_results)  # type: ignore
 
 
 async def main():
@@ -79,7 +94,7 @@ async def main():
 if __name__ == "__main__":
     import uvicorn
 
-    Logger.set_verbosity_level("DEVELOPMENT")
+    Logger.debug_log(False)
 
     asyncio.run(main())
 

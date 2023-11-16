@@ -1,91 +1,76 @@
 from typing import Annotated
+from xml.dom import ValidationErr
+from authly.api.api_v1 import exceptions
+from authly.api.api_v1.db.connect import get_mongo_manager, get_redis_manager
+from authly.core.db.redis_crud import RedisManager
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from fastapi.security import (
     OAuth2PasswordBearer,
 )  # , OAuth2PasswordRequestForm
 
 from authly.core.db.mongo_crud import MongoDBManager
-from authly.core.hashing import Hasher
-from authly.core.config import application_config
-from authly.core.log import Logger
-from authly.core.log import LogLevel
+from authly.core.log import Logger, LogLevel
 from authly.api.api_v1.authentication import token as TokenManager
-from authly.api.api_v1.user.managment import UserManagment
-import authly.api.api_v1.user.model as UserModel
+from authly.api.api_v1.authentication import (
+    password_hashing as password_manager,
+)
+from authly.api.api_v1.user import managment
 from authly.core.object_id import convert_object_id_to_str
-
-
-# from bson import ObjectId
-
-# def check_if_allowed():
-#     return
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/user/token")
 
 
+async def get_user_data(user_id: str) -> dict:
+    try:
+        data = await managment.get_user_data_by_id(
+            user_id, get_mongo_manager("Users")
+        )
+    except ValueError as e:
+        Logger.log(LogLevel.ERROR, "ValueError in get_current_user:", e)
+        raise HTTPException(status_code=500, detail="internal server issues")
+
+    except Exception as e:
+        Logger.log(LogLevel.ERROR, "error in get_current_user:", e)
+        raise HTTPException(status_code=500, detail="internal server issues")
+
+    else:
+        return dict(data)
+
+
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)]
 ) -> dict:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    redis_manager = get_redis_manager()
+    try:
+        redis_manager.connect()
+        user_id = TokenManager.get_user_id(token, redis_manager)
 
-    (_, user_id) = TokenManager.Token(token=token)
+    except Exception:
+        raise exceptions.credentials_exception
 
-    if _ is False:
-        raise credentials_exception
-    if user_id is None:
-        raise credentials_exception
-    user_manager = UserManagment()
+    else:
+        return await get_user_data(user_id)
 
-    _, data = await user_manager.get_user_data(user_id)
-    Logger.log(LogLevel.INFO, data, type(data))
-    if _ is False:
-        Logger.log(LogLevel.ERROR, "error in get_current_user:", f"{_}")
-        raise HTTPException(status_code=500, detail="internal server issues")
-    return data
+    finally:
+        redis_manager.close()
 
 
-async def get_current_active_user(
-    current_user: Annotated[UserModel.User, Depends(get_current_user)]
-):
-    if current_user.get("disabled"):
-        Logger.log(
-            LogLevel.ERROR, "error curretn user inactive:", f"{current_user}"
-        )
-        raise HTTPException(status_code=400, detail="Inactive user")
+async def authenticate_user(
+    email: str, password: str, mongo_manager: MongoDBManager
+) -> dict:
+    try:
+        _, user = await mongo_manager.read_manager.find_one({"email": email})
 
-    return current_user
+    except FileNotFoundError as e:
+        Logger.log(LogLevel.ERROR, "error in authenticate_user:", "except:", e)
+        raise FileNotFoundError("email not found")
 
+    else:
+        stored_hash = user["password"]
+        user = convert_object_id_to_str(user)
+        if await password_manager.verify_password(password, stored_hash):
+            return user
 
-async def verify_password(userdata: dict, requested_pw: str):
-    hashed_pw = userdata["password"]
-    result = Hasher.verify_password(
-        password=requested_pw, stored_hash=hashed_pw
-    )
-    Logger.log(LogLevel.DEBUG, f"verify_password result: {result}")
-    if not result:
-        return False
-    elif result:
-        return True
-
-
-async def authenticate_user(email: str, password: str) -> tuple[bool, dict]:
-    mongo_manager = MongoDBManager(
-        collection_name="Users",
-        db_name=application_config.MongodbSettings.MONGODB_NAME,
-        db_url=application_config.MongodbSettings.MONGODB_URL,
-    )
-
-    bool, user = await mongo_manager.read_manager.find_one({"email": email})
-    user = convert_object_id_to_str(user)
-
-    if not user:
-        return False, None
-    if not await verify_password(userdata=user, requested_pw=password):
-        return False, None
-    return True, user
+        raise ValidationErr("password missmatch")

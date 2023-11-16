@@ -1,18 +1,38 @@
-# create-svelte
+# Authly Frontend Example
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+This project serves as an example frontend implementation for Authly, a simple authentication system. Authly is designed to showcase backend integration with container IDs/keys for secure communication. This example uses Svelte, integrates Tailwind CSS, and is entirely client-sided.
 
-## Creating a project
+## Getting Started
 
-If you're seeing this, you've probably already done this step. Congrats!
+### Prerequisites
+
+Make sure you have Node.js installed on your machine.
+
+### Installation
+
+Install dependencies:
 
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
+npm install
 ```
+
+### Configuration
+
+Before running the application, configure the backend container ID/key in the src/config.js file.
+
+```js
+// src/config.js
+const config = {
+ // Other configurations...
+ backend: {
+  containerId: 'your-backend-container-id'
+ }
+};
+
+export default config;
+```
+
+Replace 'your-backend-container-id' with the actual container ID and key from your Authly backend.
 
 ## Developing
 
@@ -25,6 +45,8 @@ npm run dev
 npm run dev -- --open
 ```
 
+Visit <http://localhost:5173> in your browser to see the Authly Frontend in action.
+
 ## Building
 
 To create a production version of your app:
@@ -36,3 +58,31 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+
+## Features
+
+- User registration
+- Tailwind CSS for styling
+- Client-side integration with Authly backend
+- Easy-to-understand example for backend implementation
+
+## components
+
+<https://github.com/keenethics/svelte-notifications>,
+<https://tailwindcomponents.com/>,
+<https://github.com/estevanmaito/windmill-dashboard>,
+<https://tailwindui.com/>
+
+## Contributing
+
+Feel free to contribute to this project by opening issues or submitting pull requests. Your feedback and suggestions are valuable!
+
+## License
+
+Authly is licensed under the MIT License with additional clauses:
+
+- **Copyleft Clause**</br>
+  Any modifications, adaptations, or derivative works based on this software must be made publicly available on GitHub with proper attribution to the original developer wavy42 by adding a link to the original repository.
+
+- **Commercial Use Attribution Clause**</br>
+  For any commercial use of this software, proper attribution to the original developer wavy42 is required, and a link to the original repository on GitHub must be provided.

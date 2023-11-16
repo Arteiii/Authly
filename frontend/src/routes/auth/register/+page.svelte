@@ -1,64 +1,140 @@
 <script>
-  let username = "";
-  let email = "";
-  let password = "";
-  let registrationStatus = "";
+	import Button from '@components/ui/buttons/Button.svelte';
 
+	let isLoading = false;
+	let isError = false;
+	let isDone = false;
+	let username = '';
+	let email = '';
+	let password = '';
+	let registrationStatus = '';
 
-  async function registerUser() {
-    // Encode the password to base64
-    const passwordBase64 = btoa(password);
-    const userData = { username, email, password: passwordBase64 };
+	$: isInputMissing = !username || !email || !password;
 
-    try {
-      const response = await fetch('http://192.168.178.58:8000/api/v1/user/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
+	async function registerUser() {
+		isLoading = true;
 
-      if (response.ok) {
-        registrationStatus = 'User registered successfully!';
-      } else {
-        registrationStatus = 'User registration failed. Please try again.';
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      registrationStatus = 'An error occurred while registering the user.';
-    }
-  }
+		// Encode the password to base64
+		const passwordBase64 = btoa(password);
+		const userData = { username, email, password: passwordBase64 };
+
+		try {
+			const response = await fetch('http://192.168.178.58:8000/api/v1/user/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(userData)
+			});
+
+			if (response.ok) {
+				registrationStatus = 'User registered successfully!';
+			} else {
+				registrationStatus = 'User registration failed. Please try again.';
+			}
+		} catch (error) {
+			console.error('Error:', error);
+			registrationStatus = 'An error occurred while registering the user.';
+		}
+	}
 </script>
 
-<h1>Register User</h1>
+<div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+	<div class="sm:mx-auto sm:w-full sm:max-w-sm">
+		<!-- <img class="mx-auto h-10 w-auto" src="" alt="Authly"> -->
+		<h2 class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900 dark:text-gray-200">
+			Create User
+		</h2>
+	</div>
 
-<label for="username">Username:</label>
-<input type="text" id="username" bind:value={username} />
+	<div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+		<form class="space-y-6" action="#" method="POST">
+			<div>
+				<label for="email" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200"
+					>Email address</label
+				>
+				<div class="mt-2">
+					<input
+						id="email"
+						bind:value={email}
+						name="email"
+						type="email"
+						autocomplete="email"
+						required
+						placeholder="user@example.com"
+						class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+					/>
+				</div>
+			</div>
+			<div>
+				<label for="email" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Username</label
+				>
+				<div class="mt-2">
+					<input
+						id="email"
+						bind:value={username}
+						name="email"
+						type="email"
+						autocomplete="email"
+						required
+						placeholder="user"
+						class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+					/>
+				</div>
+			</div>
 
-<label for="email">Email:</label>
-<input type="email" id="email" bind:value={email} />
+			<div>
+				<div class="flex items-center justify-between">
+					<label for="password" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200"
+						>Password</label
+					>
+				</div>
+				<div class="mt-2">
+					<input
+						bind:value={password}
+						id="password"
+						name="password"
+						type="password"
+						autocomplete="current-password"
+						placeholder="P@$$w0rD"
+						required
+						class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+					/>
+				</div>
+			</div>
 
-<label for="password">Password:</label>
-<input type="password" id="password" bind:value={password} />
-
-<button class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow" on:click={registerUser}>Register</button>
-
-{#if registrationStatus}
-  <p>{registrationStatus}</p>
-{/if}
-
+			<div class="flex min-h-full items-center justify-center px-6 lg:px-8">
+				<Button
+					on:click={registerUser}
+					loading={isLoading}
+					loadingClass="bg-yellow-600 scale-110 active:bg-yellow-600"
+					error={isError}
+					errorClass="bg-red-600 scale-110 shake active:bg-red-600"
+					done={isDone}
+					doneClass="bg-green-600 scale-110 active:bg-green-600"
+					disabled={isInputMissing}
+					disabledClass="opacity-40 cursor-not-allowed active:bg-red-600"
+				>
+					{#if isLoading}
+						Loading...
+					{:else if isError}
+						Error! try again
+					{:else if isDone}
+						Successfully
+					{:else}
+						Login!
+					{/if}
+				</Button>
+			</div>
+		</form>
+		<p class="mt-10 text-center text-sm text-gray-500">
+			Already a member?
+			<a href="/auth/login" class="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+				>Login</a
+			>
+		</p>
+	</div>
+</div>
 
 <style lang="postcss">
-  :global(html) {
-    --background-color: white;
-    --text-color: black;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :global(html) {
-      --background-color: black;
-      --text-color: white;
-    }
-  }
 </style>
