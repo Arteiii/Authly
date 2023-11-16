@@ -1,6 +1,12 @@
 ---
 name: CodeCov
-on: [push, pull_request]
+on:
+  push:
+    branches-ignore: []
+    # Remove the line above to run when pushing to master or main
+  pull_request:
+    branches: [master, main]
+    
 jobs:
   run:
     runs-on: ubuntu-latest
