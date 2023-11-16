@@ -1,5 +1,5 @@
 {
-    "authly\\app.py": "3888ded9767727320930e84ced88260145da056027e17b6b132c363d7c326d70",
+    "authly\\app.py": "a084c56449ea2752cbcfc4d4b9bcd1f27ed9ff5d89a85ba7878cf847f3daab2a",
     "authly\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "authly\\api\\api_router.py": "870a75f5d6e0406da53fb20a9e8895f23fc28ddb4054c460400e6d133f8915c9",
     "authly\\api\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -14,7 +14,7 @@
     "authly\\api\\api_v1\\key\\model.py": "68eb26e42ae508867590023f7676d325802ebec24ecc39e047d87e183b5b4936",
     "authly\\api\\api_v1\\key\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "authly\\api\\api_v1\\user\\managment.py": "95c2b3f599126df76ca514328f4eede016672c6c43f54bf98f316537f9c44ab5",
-    "authly\\api\\api_v1\\user\\user.py": "96c4549ea56b94ff25315ec1e6b1458f9eda23e71a6a7922254cdf4ad1e38a21",
+    "authly\\api\\api_v1\\user\\user.py": "98b00ee6cab7402aff66d539172932997405cd70685a759736a6d7d6c41236d9",
     "authly\\api\\api_v1\\user\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "authly\\config_temp\\config.json": "656e963cae641b3735f27be52c5a5a14e0195559241d58fe169be9d4787b50ac",
     "authly\\core\\config.py": "52e8903fe5a45e2afdbfdc2588ea6979c5e93bcb0f0ec14a24adc41c412d6593",
@@ -40,5 +40,6 @@
     "authly\\api\\api_v1\\model\\model.py": "89d73b1fd26148297005a0c65c8ba6b73edac9d381f948935a4c9fb922c19609",
     "authly\\api\\api_v1\\model\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "authly\\api\\api_v1\\db\\connect.py": "62f17d4d22ea951d828b01ecfcdd936939cef2f9de30876521c4adb14c48a039",
-    "authly\\api\\api_v1\\db\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    "authly\\api\\api_v1\\db\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "authly\\api\\api_v1\\exceptions.py": "d19ab5952a3523121e205c12856e363c62e307ec0fbddf9a5d4c4b9c58d6ee2c"
 }
