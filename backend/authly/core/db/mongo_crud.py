@@ -102,31 +102,6 @@ class MongoDBManager:
 
             raise Exception("Result is False")
 
-        async def insert_many_documents(
-            self, data_list: dict
-        ) -> Tuple[bool, Any]:
-            """
-            Insert multiple documents into the MongoDB collection.
-
-            Args:
-                data_list: A list of documents to insert.
-
-            Returns:
-                A tuple containing:
-                - bool: True if the insertion was successful, False otherwise.
-                - str: A descriptive message about the insertion result.
-                - Optional[str]: Additional information about the inserted
-                    documents if the insertion was successful, otherwise None.
-            """
-            try:
-                result = await self.collection.insert_many(data_list)
-
-            except Exception as e:
-                raise Exception(f"An unexpected error occurred: {e}")
-
-            else:
-                return True, result
-
     #####################################
     #                Read:              #
     #####################################
@@ -241,37 +216,6 @@ class MongoDBManager:
             else:
                 if result.modified_count > 0:
                     return True, result
-
-                return False, result
-
-        async def update_many_documents(
-            self, query: dict, update_data: dict
-        ) -> Tuple[bool, Any]:
-            """
-            Update multiple documents in the MongoDB collection based on the\
-                given query.
-
-            Args:
-                query: The query to find the documents.
-                update_data: The data to update in the documents.
-
-            Returns:
-                A tuple containing:
-                - bool: True if the update was successful, False otherwise.
-                - str: A descriptive message about the update result.
-                - str: Additional information about the update operation.
-            """
-            try:
-                result = await self.collection.update_many(
-                    query, {"$set": update_data}
-                )
-
-            except Exception as e:
-                raise Exception(f"An unexpected error occurred: {e}")
-
-            else:
-                if result.modified_count > 0:
-                    return (True, result)
 
                 return False, result
 

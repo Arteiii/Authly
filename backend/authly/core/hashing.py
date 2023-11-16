@@ -11,6 +11,7 @@ Author: Arteii
 Date: 24/10/2023
 """
 
+from typing import Union
 import argon2
 import bcrypt
 from authly.core.config import application_config, HashingAlgorithmTypes
@@ -29,7 +30,7 @@ class Bcrypt:
     """
 
     @staticmethod
-    def verify_password(stored_hash, password):
+    def verify_password(stored_hash: bytes, password: str) -> bool:
         """
         Verify a password against a stored Bcrypt hash.
 
@@ -40,13 +41,12 @@ class Bcrypt:
         Returns:
             bool: True if the password is valid, False otherwise.
         """
-        return bcrypt.checkpw(
-            password.encode(bcrypt_config.ENCODING),
-            stored_hash,
-        )
+        if not isinstance(password, str):
+            raise TypeError("Password must be a string")
+        return bcrypt.checkpw(password.encode("utf-8"), stored_hash)
 
     @staticmethod
-    def get_password_hash(password):
+    def get_password_hash(password: str) -> bytes:
         """
         Hash a password using Bcrypt.
 
@@ -56,10 +56,11 @@ class Bcrypt:
         Returns:
             bytes: The Bcrypt hash of the password.
         """
+        if not isinstance(password, str):
+            raise TypeError("Password must be a string")
         salt = bcrypt.gensalt(rounds=bcrypt_config.ROUNDS)
         hashed_password = bcrypt.hashpw(
-            password.encode(bcrypt_config.ENCODING),
-            salt,
+            password.encode(bcrypt_config.ENCODING), salt
         )
         return hashed_password
 
@@ -152,7 +153,7 @@ class Hasher:
     def get_password_hash(
         password,
         algorithm: HashingAlgorithmTypes = default,
-    ) -> str:
+    ) -> Union[str, bytes]:
         """
         Hash a password using the specified hashing algorithm.
 
@@ -165,7 +166,7 @@ class Hasher:
             str: The hash of the password.
         """
         if algorithm == "bcrypt":
-            return str(Bcrypt.get_password_hash(password))
+            return Bcrypt.get_password_hash(password)
         elif algorithm == "argon2":
             return Argon.get_password_hash(password)
         else:

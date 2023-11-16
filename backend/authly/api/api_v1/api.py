@@ -22,3 +22,8 @@ tags_metadata = [
 
 api_router.include_router(user, tags=["users"], prefix="/user")
 api_router.include_router(admin, tags=["admin"], prefix="/admin")
+
+
+@api_router.get("/")
+async def api_router_hello_world():
+    return {"msg": "Hello World"}

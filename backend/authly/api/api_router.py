@@ -33,6 +33,11 @@ if API_V1.API_V1_ACTIVE is True:
     api_main_router.include_router(api_v1, prefix=API_V1.API_V1_ROUTE)
 
 
+@api_main_router.get("/")
+async def api_main_router_hello_world():
+    return {"msg": "Hello World"}
+
+
 # will add as soon as there is a version2
 # if API_V2.API_V2_ACTIVE == True:
 #     print(f"api version 2 is available at: {API_V2.API_V2_ROUTE}")

@@ -24,7 +24,6 @@ origins = [
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Startup")
-    Logger.disable()
     yield
     print("Shutdown")
 

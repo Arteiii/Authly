@@ -1,5 +1,8 @@
 from typing import Annotated
-from authly.api.api_v1.db.connect import get_mongo_manager
+from xml.dom import ValidationErr
+from authly.api.api_v1 import exceptions
+from authly.api.api_v1.db.connect import get_mongo_manager, get_redis_manager
+from authly.core.db.redis_crud import RedisManager
 
 from fastapi import Depends, HTTPException
 from fastapi.security import (
@@ -17,12 +20,6 @@ from authly.core.object_id import convert_object_id_to_str
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/user/token")
-
-credentials_exception = HTTPException(
-    status_code=401,
-    detail="Could not validate credentials",
-    headers={"WWW-Authenticate": "Bearer"},
-)
 
 
 async def get_user_data(user_id: str) -> dict:
@@ -45,14 +42,19 @@ async def get_user_data(user_id: str) -> dict:
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)]
 ) -> dict:
+    redis_manager = get_redis_manager()
     try:
-        user_id = TokenManager.get_user_id(token)
+        redis_manager.connect()
+        user_id = TokenManager.get_user_id(token, redis_manager)
 
     except Exception:
-        raise credentials_exception
+        raise exceptions.credentials_exception
 
     else:
         return await get_user_data(user_id)
+
+    finally:
+        redis_manager.close()
 
 
 async def authenticate_user(
@@ -63,7 +65,7 @@ async def authenticate_user(
 
     except FileNotFoundError as e:
         Logger.log(LogLevel.ERROR, "error in authenticate_user:", "except:", e)
-        raise HTTPException(status_code=500, detail="email not found")
+        raise FileNotFoundError("email not found")
 
     else:
         stored_hash = user["password"]
@@ -71,4 +73,4 @@ async def authenticate_user(
         if await password_manager.verify_password(password, stored_hash):
             return user
 
-        raise HTTPException(status_code=500, detail="password missmatch")
+        raise ValidationErr("password missmatch")

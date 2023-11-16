@@ -12,9 +12,7 @@ def generate_token(additional: int = 0) -> str:
     )
 
 
-def get_user_id(
-    token: str, redis_manager: RedisManager = get_redis_manager()
-) -> str:
+def get_user_id(token: str, redis_manager: RedisManager) -> str:
     try:
         user_id = redis_manager.get(token)
         Logger.log(
@@ -32,13 +30,12 @@ def get_user_id(
 
 def get_new_token(
     user_id: str,
-    redis_manager: RedisManager = get_redis_manager(),
+    redis_manager: RedisManager,
     expiration_time_minutes: int = 1440,
     token_length: int = 0,
 ) -> str:
     new_token = generate_token(token_length)
     try:
-        redis_manager.connect()
         data = get_user_id(new_token, redis_manager)
         Logger.log(LogLevel.DEBUG, data)
 
@@ -49,11 +46,6 @@ def get_new_token(
             new_token, user_id, expiration_seconds=expiration_time_minutes * 60
         )
         Logger.log(LogLevel.DEBUG, "set new token result:", set_result)
-
-        Logger.log(
-            LogLevel.DEBUG, "Redis manager close", redis_manager.close()
-        )
-
         return new_token
 
     except Exception as e:
