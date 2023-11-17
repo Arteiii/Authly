@@ -30,7 +30,6 @@ async def test_get_user_data_by_id(mongo_client):
     assert result == convert_object_id_to_str(user_data)
 
 
-
 @pytest.mark.asyncio
 async def test_get_user_data_by_email(mongo_client):
     user_data = {"username": "test_user", "email": "test@example.com"}
@@ -41,7 +40,6 @@ async def test_get_user_data_by_email(mongo_client):
 
     assert found == True
     assert result.get("email") == email
-
 
 
 @pytest.mark.asyncio
