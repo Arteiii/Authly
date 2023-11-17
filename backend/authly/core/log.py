@@ -35,13 +35,15 @@ def banner(
 def format_value(value):
     value_upper = str(value).upper()
     if value_upper == "TRUE":
-        return f"{Fore.GREEN}{value_upper}{Fore.RESET}"
-    elif value_upper == "FALSE" or value_upper == "FAILED":
-        return f"{Fore.RED}{value_upper}{Fore.RESET}"
+        return f"{Fore.GREEN}TRUE   {Fore.RESET}"
+    elif value_upper == "FALSE":
+        return f"{Fore.RED}FALSE  {Fore.RESET}"
+    elif value_upper == "FAILED":
+        return f"{Fore.RED}FAILED {Fore.RESET}"
     elif value_upper == "PASSED":
-        return f"{Fore.GREEN}{value_upper}{Fore.RESET}"
+        return f"{Fore.GREEN}PASSED {Fore.RESET}"
     elif value_upper == "WARNING":
-        return f"{Fore.YELLOW}{value_upper}{Fore.RESET}"
+        return f"{Fore.YELLOW}WARNING{Fore.RESET}"
     else:
         return str(value)
 
@@ -170,7 +172,11 @@ class Logger:
 
 
 # Example usage of the custom_logger function
-if __name__ == "__main__":
+def main() -> bool:
+    Logger.log(
+        LogLevel.DEBUG,
+        "this is a log with jsut one line.",
+    )
     Logger.log(
         LogLevel.DEBUG,
         "This is the first line of the log.",
@@ -201,3 +207,43 @@ if __name__ == "__main__":
         "This is the second line of the log.",
         "This is the third line of the log.",
     )
+    Logger.tests(
+        {
+            "TestTester": "failed",
+            "Main Test": [
+                {"Test1": "True"},
+                {"Test2": "False"},
+                {"Test3": "Passed"},
+                {"Test4": "Failed"},
+                {"Test5": "warninG"},
+                {"Test6": "asdasd"},
+            ],
+        }
+    )
+    Logger.tests({"TestTester": "failed"})
+
+    Logger.disable(True)
+    Logger.log(
+        LogLevel.CRITICAL,
+        "This is the first line of the log.",
+        "This is the second line of the log.",
+        "This is the third line of the log.",
+    )
+    Logger.disable(False)
+    Logger.log(
+        LogLevel.DEBUG,
+        "This is the first line of the log.",
+        "This is the second line of the log.",
+        "This is the third line of the log.",
+    )
+    Logger.debug_log(True)
+    Logger.log(
+        LogLevel.DEBUG,
+        "This is the first line of the log.",
+        "This is the second line of the log.",
+        "This is the third line of the log.",
+    )
+    return True
+
+
+main()

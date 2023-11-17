@@ -2,23 +2,21 @@
 main.py
 """
 from typing import Annotated
-from authly.api.api_v1.db.connect import get_mongo_manager, get_redis_manager
+from authly.api.api_v1.db import connect
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from authly.api.api_v1.authentication import token as TokenManager
-from authly.api.api_v1.authentication import (
-    password_hashing as password_manager,
-)
+from authly.api.api_v1.authentication import token_module as TokenManager
+
 from authly.api.api_v1.authentication import user_authorization as ua
 from authly.api.api_v1.user import managment
 from authly.api.api_v1.model import model
 from authly.api.api_v1 import exceptions
-from authly.core.config import application_config
-from authly.core.log import Logger, LogLevel
+from authly.core import hashing, config, log
 from pydantic import ValidationError
 
-Mongo_URL = application_config.MongodbSettings.MONGODB_URL  # type: ignore
+config = config.application_config
+Mongo_URL = config.MongodbSettings.MONGODB_URL  # type: ignore
 
 app = APIRouter()
 
@@ -27,14 +25,20 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/user/token")
 UserCollectionName = "Users"
 
 
+def return_new_token(user_id):
+    redis_manager = connect.get_redis_manager()
+    redis_manager.connect()
+    return TokenManager.get_new_token(user_id, redis_manager)
+
+
 class MongoConfig:
-    mongo_config = application_config.MongodbSettings  # type: ignore
+    mongo_config = config.MongodbSettings  # type: ignore
     name = mongo_config.MONGODB_NAME
     url = mongo_config.MONGODB_URL
 
 
 class RedisConfig:
-    redis_config = application_config.RedisdbSettings  # type: ignore
+    redis_config = config.RedisdbSettings  # type: ignore
     db = redis_config.REDIS_DB
     host = redis_config.REDIS_HOST
     port = redis_config.REDIS_PORT
@@ -56,12 +60,12 @@ async def register_user(
     """
 
     try:
-        hashed_password = await password_manager.hash_password(
-            password=user_data.password
-        )
+        hashed_password = hashing.get_password_hash(user_data.password)
 
     except Exception as e:
-        Logger.log(LogLevel.ERROR, "Exception while hashing password", f"{e}")
+        log.Logger.log(
+            log.LogLevel.ERROR, "Exception while hashing password", f"{e}"
+        )
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     try:
@@ -69,70 +73,58 @@ async def register_user(
             email=user_data.username,
             role=["User"],
             password=hashed_password,
-            mongo_client=get_mongo_manager(UserCollectionName),
+            mongo_client=connect.get_mongo_manager(UserCollectionName),
         )
 
     except ValueError as ve:
-        Logger.log(LogLevel.ERROR, f"Bad Request: {ve}")
+        log.Logger.log(log.LogLevel.ERROR, f"Bad Request: {ve}")
         return HTTPException(
             status_code=400, detail="Email In use or Blacklisted"
         )
 
     except Exception as e:
-        Logger.log(LogLevel.ERROR, "Exception while creating user", f"{e}")
+        log.Logger.log(
+            log.LogLevel.ERROR, "Exception while creating user", f"{e}"
+        )
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     else:
         return results
 
 
-# add base 654 vlaidation for passwords
 @app.post("/token", response_model=model.Token)
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    mongo_manager = connect.get_mongo_manager(UserCollectionName)
     try:
-        mongo_manager = get_mongo_manager(UserCollectionName)
         user = await ua.authenticate_user(
             form_data.username, form_data.password, mongo_manager
         )
-        Logger.log(LogLevel.DEBUG, user)
+        log.Logger.log(log.LogLevel.DEBUG, user)
 
-    except FileNotFoundError as e:
-        Logger.log(
-            LogLevel.ERROR, "email/user not found", "FileNotFoundError", e
-        )
+    except FileNotFoundError:
         raise exceptions.credentials_exception
 
-    except ValidationError as e:
-        Logger.log(LogLevel.ERROR, "password missmatch", "ValidationErr", e)
+    except ValidationError:
         raise exceptions.credentials_exception
 
     except Exception as e:
-        Logger.log(LogLevel.ERROR, e)
+        log.Logger.log(log.LogLevel.ERROR, e)
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     else:
-        redis_manager = get_redis_manager()
-        redis_manager.connect()
-        new_token = TokenManager.get_new_token(
-            user_id=str(user.get("id")),
-            expiration_time_minutes=240,
-            redis_manager=redis_manager,
-        )
-        # close connections
-        await mongo_manager.close_connection()
-        redis_manager.close()
-        Logger.log(LogLevel.DEBUG, "New token:", new_token)
+        return {
+            "access_token": return_new_token(str(user.get("id"))),
+            "token_type": "bearer",
+        }
 
-        return {"access_token": new_token, "token_type": "bearer"}
+    finally:
+        await mongo_manager.close_connection()
 
 
 @app.get("/me", response_model=None)  # , response_model=model.User
 async def read_users_me(
     current_user: Annotated[dict, Depends(ua.get_current_user)]
 ):
-    Logger.log(
-        LogLevel.INFO, "users/me: (get('id'))", current_user.get("id")  # type: ignore
-    )
     current_user.pop("password", None)
 
     return current_user

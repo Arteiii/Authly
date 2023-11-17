@@ -1,7 +1,6 @@
 """
 main.py
 """
-
 from authly.core.db.mongo_crud import MongoDBManager
 from authly.core.db.redis_crud import RedisManager
 

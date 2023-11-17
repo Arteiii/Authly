@@ -3,7 +3,6 @@ routes for different api versions
 """
 
 
-import sys
 from backend.authly.core.log import Logger, LogLevel
 from backend.authly.api.api_v1.api import api_router as api_v1
 from backend.authly.core.config import application_config
@@ -25,32 +24,13 @@ def check_api_paths(f, s) -> bool:
     return True
 
 
-def activate_api(
-    main_path: str,
-    api_route: str,
-    api_version: str,
-    api: APIRouter,
-    main_router: APIRouter,
-) -> bool:
+if API_V1.API_V1_ACTIVE is True:
     Logger.log(
         LogLevel.INFO,
-        f"api ({api_version}) is available at:",
-        f"        \\__ https://example.com{main_path}{api_route}",
+        "api version 1 is available at:",
+        f"        \\__ https://example.com{API_ROUTE}{API_V1.API_V1_ROUTE}",
     )
-    main_router.include_router(api, prefix=api_route)
-    return True
-
-
-def main(stop: bool = False):
-    if stop:
-        sys.exit()
-
-    activate_api(
-        API_ROUTE, API_V1.API_V1_ROUTE, "API_V1", api_v1, api_main_router
-    )
-
-
-main(check_api_paths(API_V1.API_V1_ROUTE, API_V2.API_V2_ROUTE))
+    api_main_router.include_router(api_v1, prefix=API_V1.API_V1_ROUTE)
 
 
 @api_main_router.get("/")

@@ -24,9 +24,7 @@ Date: 25/10/2023
 """
 
 from typing import Any, Tuple
-from fastapi.exceptions import ValidationException
 import motor.motor_asyncio
-import asyncio
 
 
 class MongoDBManager:
@@ -87,20 +85,15 @@ class MongoDBManager:
                 - str: A descriptive message about the insertion result.
             """
 
-            try:
-                result = await self.collection.insert_one(data)
+            result = await self.collection.insert_one(data)
 
-            except Exception as e:
-                raise Exception(f"An unexpected error occurred: {e}")
+            if result:
+                return (
+                    True,
+                    result.inserted_id,
+                )
 
-            else:
-                if result:
-                    return (
-                        True,
-                        result.inserted_id,
-                    )
-
-            raise Exception("Result is False")
+            return False, result
 
     #####################################
     #                Read:              #
@@ -133,17 +126,12 @@ class MongoDBManager:
                 - Exception(f"An unexpected error occurred: {e}")
                 - FileNotFoundError("Mongo search Result is False")
             """
-            try:
-                result = await self.collection.find_one(query)
+            result = await self.collection.find_one(query)
 
-            except Exception as e:
-                raise Exception(f"An unexpected error occurred: {e}")
+            if result:
+                return True, result
 
-            else:
-                if result:
-                    return True, result
-
-            raise FileNotFoundError("Mongo search Result is False")
+            return False, result
 
         async def find_many(self, query: dict) -> Tuple[bool, list]:
             """
@@ -160,19 +148,14 @@ class MongoDBManager:
                     None otherwise.
                 - str: A descriptive message about the find_many result.
             """
-            try:
-                result_list: list = []
-                async for doc in self.collection.find(query):
-                    result_list.append(doc)
+            result_list: list = []
+            async for doc in self.collection.find(query):
+                result_list.append(doc)
 
-            except Exception as e:
-                raise Exception(f"An unexpected error occurred: {e}")
+            if result_list:
+                return True, result_list
 
-            else:
-                if result_list:
-                    return True, result_list
-
-            raise ValidationException("Result is False")
+            return False, result_list
 
     #####################################
     #               Update:             #
@@ -205,19 +188,14 @@ class MongoDBManager:
                 - str: A descriptive message about the update result.
                 - str: Additional information about the update operation.
             """
-            try:
-                result = await self.collection.update_one(
-                    query, {"$set": update_data}
-                )
+            result = await self.collection.update_one(
+                query, {"$set": update_data}
+            )
 
-            except Exception as e:
-                raise Exception(f"An unexpected error occurred: {e}")
+            if result.modified_count > 0:
+                return True, result
 
-            else:
-                if result.modified_count > 0:
-                    return True, result
-
-                return False, result
+            return False, result
 
         async def replace_one_document(
             self, query: dict, replace_data: dict
@@ -237,17 +215,12 @@ class MongoDBManager:
                 - str: A descriptive message about the replacement result.
                 - str: Additional information about the replacement operation.
             """
-            try:
-                result = await self.collection.replace_one(query, replace_data)
+            result = await self.collection.replace_one(query, replace_data)
 
-            except Exception as e:
-                raise Exception(f"An unexpected error occurred: {e}")
+            if result.modified_count > 0:
+                return (True, result)
 
-            else:
-                if result.modified_count > 0:
-                    return (True, result)
-
-                return (False, result)
+            return (False, result)
 
     #####################################
     #               Delete:             #
@@ -276,17 +249,12 @@ class MongoDBManager:
                 - str: A descriptive message about the deletion result.
                 - str: Additional information about the deletion operation.
             """
-            try:
-                result = await self.collection.delete_one(query)
+            result = await self.collection.delete_one(query)
 
-            except Exception as e:
-                raise Exception(f"An unexpected error occurred: {e}")
+            if result.deleted_count > 0:
+                return True, result
 
-            else:
-                if result.deleted_count > 0:
-                    return True, result
-
-                return (False, result)
+            return (False, result)
 
         async def delete_many_documents(self, query: dict) -> Tuple[bool, Any]:
             """
@@ -302,17 +270,13 @@ class MongoDBManager:
                 - str: A descriptive message about the deletion result.
                 - str: Additional information about the deletion operation.
             """
-            try:
-                result = await self.collection.delete_many(query)
 
-            except Exception as e:
-                raise Exception(f"An unexpected error occurred: {e}")
+            result = await self.collection.delete_many(query)
 
-            else:
-                if result.deleted_count > 0:
-                    return True, result
+            if result.deleted_count > 0:
+                return True, result
 
-                return (False, result)
+            return (False, result)
 
     async def close_connection(self) -> Tuple[bool, Any]:
         """
@@ -325,28 +289,5 @@ class MongoDBManager:
             - str: A descriptive message about the connection closure result.
             - str: Additional information or error message if applicable.
         """
-        try:
-            self.client.close()
-
-        except Exception as e:
-            raise Exception(f"An unexpected error occurred: {e}")
-
-        else:
-            return True, "Connection closed"
-
-
-async def example_usage():
-    db_url = "mongodb://localhost:27017/"
-    db_name = "test_database"
-    collection_name = "test_collection"
-
-    manager = MongoDBManager(db_url, db_name, collection_name)
-
-    query = {"age": {"$gt": 25}}
-
-    manager.read_manager.find_many(query)  # type: ignore
-
-
-# Running the asyncio event loop
-if __name__ == "__main__":
-    asyncio.run(example_usage())
+        self.client.close()
+        return True, "Connection closed"

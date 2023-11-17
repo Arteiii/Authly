@@ -63,18 +63,10 @@ class RedisManager:
             - AuthenticationError
             - RedisError: If there is an error during the set operation.
         """
-        try:
-            self.redis_client: redis.Redis = redis.Redis(
-                host=self.host, port=self.port, decode_responses=True
-            )
-        except redis.AuthenticationError:
-            raise redis.AuthenticationError
-
-        except redis.RedisError as e:
-            raise redis.RedisError(e)
-
-        else:
-            return True
+        self.redis_client: redis.Redis = redis.Redis(
+            host=self.host, port=self.port, decode_responses=True
+        )
+        return True
 
     def close(self) -> bool:
         """
@@ -86,14 +78,8 @@ class RedisManager:
         Raises:
             RedisError: If there is an error during the set operation.
         """
-        try:
-            self.redis_client.close()
-
-        except redis.RedisError as e:
-            raise redis.RedisError(e)
-
-        else:
-            return True
+        self.redis_client.close()
+        return True
 
     def set(self, key: str, value: str, expiration_seconds: int = 0) -> bool:
         """
@@ -111,17 +97,12 @@ class RedisManager:
         Raises:
             RedisError: If there is an error during the set operation.
         """
-        try:
-            if expiration_seconds:
-                self.redis_client.setex(key, expiration_seconds, value)
-            else:
-                self.redis_client.set(key, value)
-
-        except redis.RedisError as e:
-            raise redis.RedisError(e)
-
+        if expiration_seconds:
+            self.redis_client.setex(key, expiration_seconds, value)
         else:
-            return True
+            self.redis_client.set(key, value)
+
+        return True
 
     def get(self, key: str) -> str:
         """
@@ -136,17 +117,9 @@ class RedisManager:
         Raises:
             RedisError: If there is an error during the set operation.
         """
-        try:
-            result = self.redis_client.get(key)
+        result = self.redis_client.get(key)
 
-        except redis.RedisError as e:
-            raise redis.RedisError(e)
-
-        else:
-            if result is None:
-                raise ValueError
-
-            return str(result)
+        return str(result)
 
     def delete(self, key: str) -> bool:
         """
@@ -161,11 +134,11 @@ class RedisManager:
         Raises:
             RedisError: If there is an error during the set operation.
         """
-        try:
-            self.redis_client.delete(key)
+        self.redis_client.delete(key)
 
-        except redis.RedisError as e:
-            raise redis.RedisError(e)
+        return True
 
-        else:
-            return True
+    def exists(self, key: str) -> int:
+        result = self.redis_client.exists(key)
+
+        return result  # type: ignore

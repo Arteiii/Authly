@@ -66,7 +66,14 @@ def verify_password(
         bool: True if the password is valid, False otherwise.
     """
     argon2_manager = argon2_manager or get_argon2_manager()
-    return argon2_manager.verify(stored_hash, password)
+    try:
+        argon2_manager.verify(stored_hash, password)
+
+    except argon2.exceptions.VerificationError:
+        return False
+
+    else:
+        return True
 
 
 def get_password_hash(
@@ -85,33 +92,3 @@ def get_password_hash(
     """
     argon2_manager = argon2_manager or get_argon2_manager()
     return argon2_manager.hash(password)
-
-
-if __name__ == "__main__":
-    argon2_manager = get_argon2_manager(
-        12,
-        256,
-        4,
-        32,
-        64,
-        "utf-8",
-    )
-    if input("compare hash with pw?").lower().startswith("y"):
-        password = input("enter password:")
-        hash = input("enter hash:")
-        print(
-            verify_password(
-                password=password,
-                stored_hash=hash,
-                argon2_manager=argon2_manager,
-            )
-        )
-
-    password = input("enter password:")
-
-    print(
-        get_password_hash(
-            password=password,
-            argon2_manager=argon2_manager,
-        )
-    )
