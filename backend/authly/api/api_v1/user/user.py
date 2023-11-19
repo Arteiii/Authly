@@ -12,7 +12,8 @@ from authly.api.api_v1.authentication import user_authorization as ua
 from authly.api.api_v1.user import managment
 from authly.api.api_v1.model import model
 from authly.api.api_v1 import exceptions
-from authly.core import hashing, config, log
+from authly.core import hashing, log
+from authly import config
 from pydantic import ValidationError
 
 config = config.application_config

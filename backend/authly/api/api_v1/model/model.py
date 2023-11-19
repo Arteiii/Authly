@@ -1,4 +1,4 @@
-from backend.authly.core.config import application_config
+from backend.authly.config import application_config
 from pydantic import BaseModel
 
 config_password_min_length = (

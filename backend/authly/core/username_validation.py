@@ -29,20 +29,17 @@ Example:
 import re
 
 
-def validate_username(value: str) -> bool:
+def validate_username(
+    value: str, pattern: str = r"^[a-zA-Z]{3,}#[0-9]{4}$"
+) -> bool:
     """
     Validate the username format using a regular expression.
 
     Args:
         value (str): The username to validate.
+        pattern (str): The regex pattern for validation.
 
     Returns:
-        bool: the result of the validation.
+        bool: The result of the validation.
     """
-    # Define the regular expression pattern for the username
-    pattern = r"^[a-zA-Z]{3,}#[0-9]{4}$"
-
-    if not re.match(pattern, value):
-        return False
-
-    return True
+    return bool(re.fullmatch(pattern, value))

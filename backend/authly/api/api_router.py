@@ -5,7 +5,7 @@ routes for different api versions
 
 from backend.authly.core.log import Logger, LogLevel
 from backend.authly.api.api_v1.api import api_router as api_v1
-from backend.authly.core.config import application_config
+from backend.authly.config import application_config
 from fastapi import APIRouter
 
 API_CONFIG = application_config.API  # type: ignore

@@ -1,5 +1,5 @@
 import pytest
-from typing import Any, Literal
+from typing import Any, Literal, Union
 from authly.core import (
     password_validation,
     username_validation,
@@ -12,36 +12,28 @@ from bson import ObjectId
 
 class TestPasswordValidation:
     @pytest.mark.parametrize(
-        "password, expected_result, expected_message",
+        "password, expected_result",
         [
-            ("1234567", False, "Password must be at least 8 characters long."),
+            ("1234567", "Password must be at least 8 characters long."),
             (
                 "passwithoutuppercase",
-                False,
                 "Password must contain at least one uppercase letter.",
             ),
             (
                 "PASSWITHOUTLOWERCASE",
-                False,
                 "Password must contain at least one lowercase letter.",
             ),
             (
                 "PAss@@!!!WITHOutDIGITS",
-                False,
                 "Password must contain at least one digit.",
             ),
             (
                 "P4SSW1TH3V3RYTH1ngbutsp3z14l",
-                False,
                 "Password must contain at least "
                 "one special character (@$!%*?&).",
             ),
-            ("V3ryS3cureP@Ss", True, "Password matches Requirements"),
-            (
-                "5aYtH/Mh.O4LQkSqQ?l;h$df%'J]Ex1^qT",
-                True,
-                "Password matches Requirements",
-            ),
+            ("V3ryS3cureP@Ss", True),
+            ("5aYtH/Mh.O4LQkSqQ?l;h$df%'J]Ex1^qT", True),
         ],
     )
     def test_password_complexity_validation(
@@ -55,29 +47,17 @@ class TestPasswordValidation:
             "V3ryS3cureP@Ss",
             "5aYtH/Mh.O4LQkSqQ?l;h$df%'J]Ex1^qT",
         ],
-        expected_result: bool,
-        expected_message: Literal[
-            "Password must be at least 8 characters long.",
-            "Password must contain at least one uppercase lette…",
-            "Password must contain at least one lowercase lette…",
-            "Password must contain at least one digit.",
-            "Password must contain at least one special charact…",
-            "Password matches Requirements",
-        ],
+        expected_result: Union[bool, str],
     ):
-        result, message = password_validation.validate_password_complexity(
-            password
-        )
+        result = password_validation.validate_password_complexity(password)
         assert result == expected_result
-        assert message == expected_message
 
     def test_short_password(self):
         short_password = "Short!"
-        result, message = password_validation.validate_password_complexity(
+        result = password_validation.validate_password_complexity(
             short_password
         )
-        assert result is False
-        assert "Password must be at least 8 characters long." in message
+        assert "Password must be at least 8 characters long." in result
 
 
 class TestUsernameValidation:

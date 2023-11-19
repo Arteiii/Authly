@@ -31,32 +31,36 @@ Example:
     Invalid: "12345678", "Password", "special!"
 """
 
-
 import re
-from typing import Tuple
+from typing import Tuple, List, Union
 
 
-def validate_password_complexity(password: str) -> Tuple[bool, str]:
-    # Define your complexity requirements using regular expressions
-    # In this example, the password must have at least one uppercase letter,
-    # one lowercase letter, one digit, and one special character.
-
-    if len(password) < 8:
-        return (False, "Password must be at least 8 characters long.")
-
-    if not re.search(r"[A-Z]", password):
-        return (False, "Password must contain at least one uppercase letter.")
-
-    if not re.search(r"[a-z]", password):
-        return (False, "Password must contain at least one lowercase letter.")
-
-    if not re.search(r"\d", password):
-        return (False, "Password must contain at least one digit.")
-
-    if not re.search(r"[@$!%*?&]", password):
-        return (
-            False,
+def validate_password_complexity(password: str) -> Union[bool, str]:
+    rules: List[Tuple[bool, str]] = [
+        (len(password) >= 8, "Password must be at least 8 characters long."),
+        (
+            re.search(r"[A-Z]", password) is not None,
+            "Password must contain at least one uppercase letter.",
+        ),
+        (
+            re.search(r"[a-z]", password) is not None,
+            "Password must contain at least one lowercase letter.",
+        ),
+        (
+            re.search(r"\d", password) is not None,
+            "Password must contain at least one digit.",
+        ),
+        (
+            re.search(r"[@$!%*?&]", password) is not None,
             "Password must contain at least one special character (@$!%*?&).",
-        )
+        ),
+    ]
 
-    return (True, "Password matches Requirements")
+    failed_rules = [
+        (condition, message) for condition, message in rules if not condition
+    ]
+
+    if failed_rules:
+        return failed_rules[0][1]
+
+    return True
