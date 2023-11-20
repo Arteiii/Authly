@@ -1,0 +1,28 @@
+{
+  "ContainerA": {
+    "_id": "ObjectId(objectidforcontainera)",
+    "name": "ContainerA",
+    "user": [
+      {
+        "_id": "ObjectId(user_id_1)",
+        "username": "user1",
+        "email": "user1@example.com",
+        "roles": ["user"],
+        "resources": []
+      }
+    ]
+  },
+  "ContainerB": {
+    "_id": "ObjectId(objectidforcontainerb)",
+    "name": "ContainerB",
+    "user": [
+      {
+        "_id": "ObjectId(user_id_1)",
+        "username": "user1",
+        "email": "user1@example.com",
+        "roles": ["user"],
+        "resources": []
+      }
+    ]
+  }
+}

@@ -3,9 +3,10 @@ routes for different api versions
 """
 
 
-from backend.authly.core.log import Logger, LogLevel
-from backend.authly.api.api_v1.api import api_router as api_v1
-from backend.authly.config import application_config
+from authly.core.utils.log import Logger, LogLevel
+from authly.api.api_v1.api import api_router as api_v1
+from authly.api.api_v2.api import api_v2_router as api_v2
+from authly.config import application_config
 from fastapi import APIRouter
 
 API_CONFIG = application_config.API  # type: ignore
@@ -31,6 +32,14 @@ if API_V1.API_V1_ACTIVE is True:
         f"        \\__ https://example.com{API_ROUTE}{API_V1.API_V1_ROUTE}",
     )
     api_main_router.include_router(api_v1, prefix=API_V1.API_V1_ROUTE)
+
+Logger.log(
+    LogLevel.INFO,
+    "devlopment/testing api is available at:",
+    f"        \\__ https://example.com{API_ROUTE}/v2",
+)
+
+api_main_router.include_router(api_v1, prefix="/v2")
 
 
 @api_main_router.get("/")

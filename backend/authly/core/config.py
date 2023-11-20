@@ -6,7 +6,7 @@ It reads a JSON file and validates it against a predefined Pydantic model.
 import os
 import json
 from pydantic_settings import BaseSettings
-from authly.core.log import Logger, LogLevel
+from authly.core.utils.log import Logger, LogLevel
 
 
 ############################################################
@@ -283,8 +283,12 @@ def check_file(file_name):
         os.path.join(script_directory, os.pardir)
     )
 
+    paren_parent_directory = os.path.abspath(
+        os.path.join(parent_directory, os.pardir)
+    )
+
     # Construct the relative path to the JSON file in the parent directory
-    json_file_path = os.path.join(parent_directory, "config_temp", file_name)
+    json_file_path = os.path.join(paren_parent_directory, "config", file_name)
 
     Logger.log(LogLevel.DEBUG, "JSON file path:", f"{json_file_path}")
 
@@ -299,5 +303,5 @@ def validate_config(data):
     return return_data
 
 
-config_data = check_file("config.json")
+config_data = check_file("backend_config.json")
 application_config = validate_config(config_data)

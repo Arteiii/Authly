@@ -7,11 +7,11 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 
 from authly.core.db.mongo_crud import MongoDBManager
-from authly.core.log import Logger, LogLevel
+from authly.core.utils.log import Logger, LogLevel
 from authly.api.api_v1.authentication import token_module as TokenManager
 from authly.api.api_v1.user import managment
-from authly.core.object_id import convert_object_id_to_str
-from authly.core import hashing
+from authly.core.utils.object_id import convert_object_id_to_str
+from authly.core.utils import hashing
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/user/token")

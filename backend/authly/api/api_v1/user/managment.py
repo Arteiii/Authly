@@ -3,12 +3,12 @@ from bson import ObjectId
 
 
 from pydantic import EmailStr
-from backend.authly.core.object_id import (
+from backend.authly.core.utils.object_id import (
     convert_object_id_to_str,
 )
 from backend.authly.core.db.mongo_crud import MongoDBManager
 from backend.authly.config import application_config
-from backend.authly.core.log import Logger, LogLevel
+from backend.authly.core.utils.log import Logger, LogLevel
 
 mongo_config = application_config.MongodbSettings  # type: ignore
 

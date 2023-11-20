@@ -244,6 +244,3 @@ def main() -> bool:
         "This is the third line of the log.",
     )
     return True
-
-
-main()
