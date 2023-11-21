@@ -3,20 +3,18 @@ from bson import ObjectId
 
 
 from pydantic import EmailStr
-from backend.authly.core.utils.object_id import (
+from authly.core.utils.object_id import (
     convert_object_id_to_str,
 )
-from backend.authly.core.db.mongo_crud import MongoDBManager
-from backend.authly.config import application_config
+from authly.db.mongo import MongoDBManager
+from authly.core.config import application_config as config
 from backend.authly.core.utils.log import Logger, LogLevel
 
-mongo_config = application_config.MongodbSettings  # type: ignore
+mongo_config = config.MongodbSettings  # type: ignore
 
 
-async def is_email_in_use(
-    email, read_manager: MongoDBManager.ReadManager
-) -> bool:
-    status, data = await read_manager.find_one({"email": str(email)})
+async def is_email_in_use(email, read_manager: MongoDBManager) -> bool:
+    status, data, details = await read_manager.find_one({"email": str(email)})
     if status:
         Logger.log(LogLevel.ERROR, "email in use:", data)
         return False
@@ -41,11 +39,8 @@ async def create_user(
         "keys": [],
     }
 
-    if not await is_email_in_use(email, mongo_client.read_manager):
-        (
-            _,
-            edited_id,
-        ) = await mongo_client.write_manager.insert_document(
+    if not await is_email_in_use(email, mongo_client):
+        (_, edited_id, _) = await mongo_client.insert_document(
             data=user_data_dict
         )
 
@@ -60,16 +55,13 @@ async def create_user(
             "email": email,
         }
 
-    return False
+    return False  # type: ignore
 
 
 async def delete_user_by_id(
     user_id: str, mongo_client: MongoDBManager
 ) -> tuple[bool, str]:
-    (
-        status,
-        data,
-    ) = await mongo_client.delete_manager.delete_document(
+    (status, data, _) = await mongo_client.delete_document(
         query={"_id": ObjectId(user_id)}
     )
 
@@ -80,10 +72,7 @@ async def delete_user_by_id(
 async def get_user_data_by_id(
     user_id: str, mongo_client: MongoDBManager
 ) -> dict:
-    (
-        status,
-        data,
-    ) = await mongo_client.read_manager.find_one(
+    (status, data, _) = await mongo_client.find_one(
         query={"_id": ObjectId(user_id)}
     )
     Logger.log(
@@ -98,10 +87,7 @@ async def get_user_data_by_id(
 async def get_user_data_by_email(
     email: str, mongo_client: MongoDBManager
 ) -> tuple[bool, dict[str, str]]:
-    (
-        status,
-        data,
-    ) = await mongo_client.read_manager.find_one({"email": str(email)})
+    (status, data, _) = await mongo_client.find_one({"email": str(email)})
     Logger.log(
         LogLevel.DEBUG,
         "user data by email",
@@ -115,10 +101,9 @@ async def get_user_data_by_email(
 async def get_user_data_by_username(
     username: str, mongo_client: MongoDBManager
 ) -> tuple[bool, dict[str, str]]:
-    (
-        status,
-        data,
-    ) = await mongo_client.read_manager.find_one(query={"username": username})
+    (status, data, _) = await mongo_client.find_one(
+        query={"username": username}
+    )
     Logger.log(
         LogLevel.DEBUG,
         "user data by email",

@@ -1,5 +1,5 @@
-from authly.api.api_v2.endpoints.user import app as user
-from authly.api.api_v2.endpoints.admin import app as admin
+from authly.api.api_v2.endpoints.user import user
+from authly.api.api_v2.endpoints.admin import admin
 from fastapi import APIRouter
 
 api_v2_router = APIRouter()

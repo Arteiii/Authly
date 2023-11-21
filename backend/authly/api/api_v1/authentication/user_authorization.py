@@ -6,7 +6,7 @@ from authly.api.api_v1.db import connect
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 
-from authly.core.db.mongo_crud import MongoDBManager
+from authly.db.mongo import MongoDBManager
 from authly.core.utils.log import Logger, LogLevel
 from authly.api.api_v1.authentication import token_module as TokenManager
 from authly.api.api_v1.user import managment
@@ -41,7 +41,7 @@ async def authenticate_user(
     email: str, password: str, mongo_manager: MongoDBManager
 ) -> dict:
     try:
-        _, user = await mongo_manager.read_manager.find_one({"email": email})
+        _, user, _ = await mongo_manager.find_one({"email": email})
 
     except FileNotFoundError as e:
         Logger.log(LogLevel.ERROR, "error in authenticate_user:", "except:", e)

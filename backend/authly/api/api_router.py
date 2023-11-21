@@ -6,7 +6,7 @@ routes for different api versions
 from authly.core.utils.log import Logger, LogLevel
 from authly.api.api_v1.api import api_router as api_v1
 from authly.api.api_v2.api import api_v2_router as api_v2
-from authly.config import application_config
+from authly.core.config import application_config
 from fastapi import APIRouter
 
 API_CONFIG = application_config.API  # type: ignore
@@ -39,7 +39,7 @@ Logger.log(
     f"        \\__ https://example.com{API_ROUTE}/v2",
 )
 
-api_main_router.include_router(api_v1, prefix="/v2")
+api_main_router.include_router(api_v2, prefix="/v2")
 
 
 @api_main_router.get("/")

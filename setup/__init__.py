@@ -1,30 +1,31 @@
 import importlib
+import shutil
 import subprocess
 import time
 
 
-def check_and_install_dependencies():
+def install_dependencies(poetry_path):
     try:
-        # Check if Poetry is installed
-        subprocess.run(
-            ["poetry", "--version"],
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        print("Poetry is installed.")
+        if poetry_path:
+            # Check if Poetry is installed
+            subprocess.run(
+                [poetry_path, "--version"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            print("Poetry is installed.")
 
-        # Run poetry install
-        subprocess.run(["poetry", "install"], check=True)
-        print("Dependencies installed successfully.")
-    except subprocess.CalledProcessError:
-        print(
-            "Error: Poetry is not installed or there was an "
-            "issue installing dependencies."
-        )
+            # Run poetry install
+            subprocess.run([poetry_path, "install"], check=True, text=True)
+            print("Dependencies installed successfully.")
+        else:
+            print("Error: Poetry is not installed.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error: There was an issue installing dependencies. {e.stderr}")
 
 
-def check_dependencies(dependencies: list):
+def check_dependencies(dependencies):
     for dependency in dependencies:
         try:
             importlib.import_module(dependency)
@@ -34,9 +35,9 @@ def check_dependencies(dependencies: list):
 
 
 def main():
-    dependencies_to_check = [
-        "requests",
-    ]
+    poetry_path = shutil.which("poetry")
+
+    dependencies_to_check = ["requests"]
 
     attempts = 0
     max_attempts = 3
@@ -46,11 +47,12 @@ def main():
             break
         else:
             print("Some dependencies are missing. Attempting to install...")
-            check_and_install_dependencies()
+            install_dependencies(poetry_path)
             time.sleep(2)  # Optional: Wait for a few seconds before rechecking
             attempts += 1
     else:
         print("Max attempts reached. Aborting.")
 
 
-main()
+if __name__ == "__main__":
+    main()

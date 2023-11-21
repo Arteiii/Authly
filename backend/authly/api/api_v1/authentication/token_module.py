@@ -1,6 +1,6 @@
 import random
 import string
-from authly.core.db.redis_crud import RedisManager
+from authly.db.redis import RedisManager
 
 
 def generate_token(len: int = 64) -> str:

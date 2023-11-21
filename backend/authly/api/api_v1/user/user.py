@@ -13,10 +13,9 @@ from authly.api.api_v1.user import managment
 from authly.api.api_v1.model import model
 from authly.api.api_v1 import exceptions
 from authly.core.utils import hashing, log
-from authly import config
+from authly.core.config import application_config as config
 from pydantic import ValidationError
 
-config = config.application_config
 Mongo_URL = config.MongodbSettings.MONGODB_URL  # type: ignore
 
 app = APIRouter()

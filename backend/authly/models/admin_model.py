@@ -12,13 +12,7 @@ class AdminAccount(BaseModel):
     username: str
     password: str
     email: EmailStr
-    container: List
-    settings: List
-
-
-class InsterAdminAccount(BaseModel):
-    username: str
-    password: str
-    email: EmailStr
+    role: List[str]
+    geo_location: str
     container: List
     settings: List

@@ -1,6 +1,6 @@
 import contextlib
 from authly.api.api_router import api_main_router
-from authly.config import application_config
+from authly.core.config import application_config
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

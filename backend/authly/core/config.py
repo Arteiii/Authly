@@ -280,15 +280,10 @@ def check_file(file_name):
 
     # Move up one directory to reach the parent directory
     parent_directory = os.path.abspath(
-        os.path.join(script_directory, os.pardir)
+        os.path.join(script_directory, os.pardir, os.pardir, os.pardir)
     )
-
-    paren_parent_directory = os.path.abspath(
-        os.path.join(parent_directory, os.pardir)
-    )
-
     # Construct the relative path to the JSON file in the parent directory
-    json_file_path = os.path.join(paren_parent_directory, "config", file_name)
+    json_file_path = os.path.join(parent_directory, "config", file_name)
 
     Logger.log(LogLevel.DEBUG, "JSON file path:", f"{json_file_path}")
 

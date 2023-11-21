@@ -13,7 +13,7 @@ Date: 24/10/2023
 from typing import Optional
 
 import argon2
-from authly.config import application_config
+from authly.core.config import application_config
 
 config = application_config.PasswordConfig  # type: ignore
 argon_config = config.ArgonHashingAlgorithm

@@ -1,10 +1,10 @@
 """
 main.py
 """
-from authly.core.db.mongo_crud import MongoDBManager
-from authly.core.db.redis_crud import RedisManager
+from authly.db.mongo import MongoDBManager
+from authly.db.redis import RedisManager
 
-from authly.config import application_config
+from authly.core.config import application_config
 
 
 class MongoConfig:

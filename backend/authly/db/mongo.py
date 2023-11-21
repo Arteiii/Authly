@@ -27,7 +27,7 @@ from typing import Any, Tuple, List, Dict
 import motor.motor_asyncio
 from pymongo import errors
 
-from authly.core import config
+from authly.core.config import application_config as config
 
 
 class MongoDBManager:
