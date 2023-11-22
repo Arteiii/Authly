@@ -1,3 +1,4 @@
+from bson import ObjectId
 from fastapi import HTTPException
 
 from authly.models import admin_model
@@ -23,8 +24,7 @@ async def create_admin_account(
 
 
 async def get_admin_accounts():
-    pass
-    # TODO: add logic
+    return await admin.get_all_admin_user()
 
 
 async def update_admin_account(
@@ -51,6 +51,16 @@ async def delete_admin_account(user_id: str):
 
 
 async def get_admin_account_by_id(user_id: str):
+    try:
+        return await admin.get_admin_user("_id", ObjectId(user_id))
+
+    except ValueError:
+        raise
+    except Exception:
+        raise
+
+
+async def get_admin_account_by_name(username: str):
     # TODO: add logic
     # for admin_account in admin_accounts:
     #     if admin_account.username == username:
@@ -58,9 +68,11 @@ async def get_admin_account_by_id(user_id: str):
     raise HTTPException(status_code=404, detail="Admin account not found")
 
 
-async def get_admin_account_by_name(user_id: str):
-    # TODO: add logic
-    # for admin_account in admin_accounts:
-    #     if admin_account.username == username:
-    #         return admin_account
-    raise HTTPException(status_code=404, detail="Admin account not found")
+async def get_admin_account_by_email(email: str) -> admin_model.AdminAccount:
+    try:
+        return await admin.get_admin_user("email", email)
+
+    except ValueError:
+        raise
+    except Exception:
+        raise

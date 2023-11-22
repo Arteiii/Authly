@@ -16,3 +16,7 @@ class AdminAccount(BaseModel):
     geo_location: str
     container: List
     settings: List
+
+
+class AllAdminAccounts(BaseModel):
+    data: List[AdminAccount]

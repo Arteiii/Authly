@@ -25,9 +25,9 @@ Date: 20/11/2023
 """
 from typing import Any, Tuple, List, Dict
 import motor.motor_asyncio
-from pymongo import errors
 
 from authly.core.config import application_config as config
+from pymongo import errors as mongo_error
 
 
 class MongoDBManager:
@@ -70,7 +70,17 @@ class MongoDBManager:
         """
         try:
             result = await self.collection.insert_one(data)
-        except errors.DuplicateKeyError:
+
+        except mongo_error.ServerSelectionTimeoutError:
+            return (
+                False,
+                None,
+                "ServerSelectionTimeoutError"
+                "Issues with the connection to the MongoDB server. "
+                "Make sure to configure it correctly.",
+            )
+
+        except mongo_error.DuplicateKeyError:
             return (
                 False,
                 None,
@@ -132,6 +142,31 @@ class MongoDBManager:
                 "Documents found" if result_list else "No documents found",
             )
 
+    async def get_all_documents(
+        self,
+    ) -> Tuple[bool, List[Dict[str, Any]], str]:
+        """
+        Get all documents from the collection.
+
+        Returns:
+            Tuple[bool, list, str]: Tuple indicating success, \
+                result list, and status message.
+        """
+        try:
+            result_list: List[Dict[str, Any]] = []
+            async for doc in self.collection.find({}):
+                result_list.append(doc)
+
+        except Exception as e:
+            return False, [], f"Error getting all documents: {e}"
+
+        else:
+            return (
+                True,
+                result_list,
+                "Documents retrieved" if result_list else "No documents found",
+            )
+
     async def update_one_document(
         self, query: Dict[str, Any], update_data: Dict[str, Any]
     ) -> Tuple[bool, Any, str]:
@@ -150,8 +185,10 @@ class MongoDBManager:
             result = await self.collection.update_one(
                 query, {"$set": update_data}
             )
+
         except Exception as e:
             return False, None, f"Error updating document: {e}"
+        
         else:
             return (
                 True,

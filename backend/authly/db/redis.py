@@ -32,11 +32,15 @@ Date: 25/10/2023
 """
 import redis
 from redis.exceptions import RedisError, ResponseError
+from authly.core.config import application_config as config
 
 
 class RedisManager:
     def __init__(
-        self, redis_port: int, redis_db: int, redis_host: str = "localhost"
+        self,
+        redis_db: int = config.RedisdbSettings.REDIS_DB,
+        redis_port: int = config.RedisdbSettings.REDIS_PORT,
+        redis_host: str = config.RedisdbSettings.REDIS_HOST,
     ) -> None:
         """
         Initialize the RedisManager instance.
@@ -59,7 +63,7 @@ class RedisManager:
             If a connection to Redis cannot be established.
         """
         try:
-            self.redis_client: redis.Redis = redis.Redis(
+            self.redis_client = redis.Redis(
                 host=self.host, port=self.port, decode_responses=True
             )
         except RedisError as e:
