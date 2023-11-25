@@ -20,17 +20,16 @@ user/ applications in a collection also get there own object ids (`new ObjectId(
 
 currently:
 
+directly ref to the document
+
 ```json
 {
-  "_id": "ObjectId(admin_id)",
+  "_id": ObjectId("admin_id"),
   "username": "admin_username",
   "email": "admin_email",
   "password": "hashed_password",
   "roles": ["admin"],
-  "containers": [
-    { "ContainerA": "ObjectId(objectidforcontainera)" },
-    { "ContainerB": "ObjectId(objectidforcontainera)" }
-  ]
+  "containers": [ObjectId("objectidforcontainera"), ObjectId("objectidforcontainerb")]
 }
 ```
 

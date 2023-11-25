@@ -5,7 +5,7 @@ from authly.core.utils.log import Logger, LogLevel
 from authly.core.utils import object_id
 from pymongo.errors import PyMongoError
 
-ADMIN_COLLECTION = "Admin"
+ADMIN_COLLECTION = "Admins"
 
 
 async def insert_admin_user(
@@ -39,7 +39,7 @@ async def insert_admin_user(
 
     finally:
         try:
-            _, _, _ = await mongo_manager.close_connection()
+            await mongo_manager.close_connection()
 
         except Exception:
             raise

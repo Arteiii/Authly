@@ -1,11 +1,12 @@
 from typing import Annotated
 from authly.api.api_v2 import http_exceptions
 from authly.core.utils.log import LogLevel, Logger
+from authly.models.container_model import ContainerConfig, ContainerSettings
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.exceptions import ValidationException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from authly.crud import crud_admin
+from authly.crud import crud_admin, crud_container
 from authly.models import admin_model as core
 from authly.api.api_v2.models import admin_model as admin_reponse
 from authly.security.authentication import admin_auth
@@ -102,8 +103,41 @@ async def get_all_admin_accounts(
 
     else:
         return result
-    
+
 
 @admin.post("/collection")
-async def create_new_collection():
-    
+async def create_new_container():
+    settings = ContainerSettings(
+        allow_new_user_registration=True,
+        bliblablu=True,
+        test_settings="testsettigns1",
+    )
+    config = ContainerConfig(
+        id=None,
+        key_document_id=None,
+        user_document_id=None,
+        application_id=None,
+        name="Test123",
+        settings=settings,
+    )
+
+    return await crud_container.creat_new_container(config)
+
+
+@admin.put("/update/collection")
+async def update_container_settings():
+    settings = ContainerSettings(
+        allow_new_user_registration=True,
+        bliblablu=True,
+        test_settings="testsettigns1",
+    )
+    config = ContainerConfig(
+        id=None,
+        key_document_id=None,
+        user_document_id=None,
+        application_id=None,
+        name="Test123",
+        settings=settings,
+    )
+
+    return await crud_container.update_container(config)

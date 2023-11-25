@@ -1,5 +1,10 @@
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+
+
+class CreateUser(BaseModel):
+    password: str
+    email: EmailStr
 
 
 class UsernameHistoryEntry(BaseModel):
@@ -18,8 +23,8 @@ class UserKey(BaseModel):
     banned: bool
 
 
-class UserModel(BaseModel):
-    _id: dict
+class UserAccount(BaseModel):
+    id: Optional[str]
     username: str
     email: str
     password: str
@@ -29,4 +34,12 @@ class UserModel(BaseModel):
     username_history: List[UsernameHistoryEntry]
     email_history: List[EmailHistoryEntry]
     keys: List[UserKey]
+    settings: List
     # add last seen and last login
+
+
+class UserDB(BaseModel):
+    id: Optional[str]
+    container_id: str
+    container_name: str
+    user: List[UserAccount]

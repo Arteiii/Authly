@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, EmailStr
 
 
@@ -14,8 +14,8 @@ class AdminAccount(BaseModel):
     email: EmailStr
     role: List[str]
     geo_location: str
-    container: List
-    settings: List
+    container: List[str]
+    settings: Dict[str, str]
 
 
 class AllAdminAccounts(BaseModel):

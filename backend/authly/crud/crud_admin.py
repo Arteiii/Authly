@@ -18,7 +18,7 @@ async def create_admin_account(
             role=["Admin"],
             geo_location="",
             container=[],
-            settings=[],
+            settings={},
         )
     )
 

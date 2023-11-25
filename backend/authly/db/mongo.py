@@ -111,7 +111,7 @@ class MongoDBManager:
             return False, {}, f"Error finding document: {e}"
         else:
             return (
-                True,
+                True if result else False,
                 result,  # type: ignore
                 "Document found" if result else "Document not found",
             )
@@ -188,7 +188,7 @@ class MongoDBManager:
 
         except Exception as e:
             return False, None, f"Error updating document: {e}"
-        
+
         else:
             return (
                 True,
