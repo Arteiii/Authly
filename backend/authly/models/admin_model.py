@@ -14,7 +14,7 @@ class AdminAccount(BaseModel):
     email: EmailStr
     role: List[str]
     geo_location: str
-    container: List[str]
+    bubble: List[str]
     settings: Dict[str, str]
 
 

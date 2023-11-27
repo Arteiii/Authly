@@ -40,6 +40,6 @@ class UserAccount(BaseModel):
 
 class UserDB(BaseModel):
     id: Optional[str]
-    container_id: str
-    container_name: str
+    bubble_id: str
+    bubble_name: str
     user: List[UserAccount]

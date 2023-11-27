@@ -1,14 +1,14 @@
 from typing import Annotated
 from authly.api.api_v2 import http_exceptions
 from authly.core.utils.log import LogLevel, Logger
-from authly.models.container_model import ContainerConfig, ContainerSettings
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.exceptions import ValidationException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from authly.crud import crud_admin, crud_container
+from authly.models import bubble_model
+from authly.crud import crud_admin, crud_bubble
 from authly.models import admin_model as core
-from authly.api.api_v2.models import admin_model as admin_reponse
+from authly.api.api_v2.models import admin_model
 from authly.security.authentication import admin_auth
 
 admin = APIRouter()
@@ -21,7 +21,7 @@ async def admin_router_hello_world():
     return {"msg": "Hello World from admin endpoint"}
 
 
-@admin.post("/", response_model=admin_reponse.CreateAdminReponse)
+@admin.post("/", response_model=admin_model.CreateAdminReponse)
 async def create_admin(
     user_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
@@ -45,7 +45,7 @@ async def create_admin(
         return result
 
 
-@admin.post("/token", response_model=admin_reponse.Token)
+@admin.post("/token", response_model=admin_model.Token)
 async def admin_login(
     user_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
@@ -73,7 +73,7 @@ async def admin_login(
         }
 
 
-@admin.get("/me", response_model=admin_reponse.AdminAccount)
+@admin.get("/me", response_model=admin_model.AdminAccount)
 async def get_current_admin_user(
     current_user: Annotated[
         core.AdminAccount, Depends(admin_auth.get_current_admin_user)
@@ -82,7 +82,7 @@ async def get_current_admin_user(
     return current_user
 
 
-@admin.get("/all", response_model=admin_reponse.AllAdminAccounts)
+@admin.get("/all", response_model=admin_model.AllAdminAccounts)
 async def get_all_admin_accounts(
     current_user: Annotated[
         core.AdminAccount, Depends(admin_auth.get_current_admin_user)
@@ -105,14 +105,19 @@ async def get_all_admin_accounts(
         return result
 
 
-@admin.post("/collection")
-async def create_new_container():
-    settings = ContainerSettings(
+@admin.post("/bubble", response_model=admin_model.CreateBubbleResponse)
+async def create_new_bubble(data: admin_model.CreateBubble):
+    return await crud_bubble.creat_new_bubble(data)
+
+
+@admin.put("/update/bubble")
+async def update_bubble_settings():
+    settings = bubble_model.BubbleSettings(
         allow_new_user_registration=True,
         bliblablu=True,
         test_settings="testsettigns1",
     )
-    config = ContainerConfig(
+    config = bubble_model.BubbleConfig(
         id=None,
         key_document_id=None,
         user_document_id=None,
@@ -121,23 +126,4 @@ async def create_new_container():
         settings=settings,
     )
 
-    return await crud_container.creat_new_container(config)
-
-
-@admin.put("/update/collection")
-async def update_container_settings():
-    settings = ContainerSettings(
-        allow_new_user_registration=True,
-        bliblablu=True,
-        test_settings="testsettigns1",
-    )
-    config = ContainerConfig(
-        id=None,
-        key_document_id=None,
-        user_document_id=None,
-        application_id=None,
-        name="Test123",
-        settings=settings,
-    )
-
-    return await crud_container.update_container(config)
+    return await crud_bubble.update_bubble(config)

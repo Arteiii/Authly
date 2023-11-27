@@ -20,7 +20,7 @@ async def insert_admin_user(
                 "email": data.email,
                 "role": data.role,
                 "geo_location": data.geo_location,
-                "container": data.container,
+                "bubble": data.bubble,
                 "settings": data.settings,
             }
         )

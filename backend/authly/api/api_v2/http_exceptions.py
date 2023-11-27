@@ -7,11 +7,10 @@ credentials_exception = HTTPException(
     headers={"WWW-Authenticate": "Bearer"},
 )
 
-container_id_not_found = HTTPException(
+bubble_id_not_found = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
-    detail="Container not found",
+    detail="bubble not found",
 )
-
 
 invalid_document_id = HTTPException(
     status_code=400, detail="Invalid document id"

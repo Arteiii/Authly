@@ -1,11 +1,11 @@
 from typing import Tuple
 from authly.db.mongo import MongoDBManager
 from authly.core.utils.log import Logger, LogLevel
-from authly.models import container_model, user_model
+from authly.models import bubble_model, user_model
 from bson import InvalidDocument, ObjectId
 
 
-async def create_container_in_collection(
+async def create_bubble_in_collection(
     collection: str,
     config: user_model.UserDB,
 ) -> str:
@@ -13,13 +13,13 @@ async def create_container_in_collection(
     try:
         status, data, details = await mongo_manager.insert_document(
             {
-                "container_id": config.container_id,
-                "container_name": config.container_name,
+                "bubble_id": config.bubble_id,
+                "bubble_name": config.bubble_name,
             }
         )
         Logger.log(
             LogLevel.DEBUG,
-            "create_container_in_collections:",
+            "create_bubble_in_collections:",
             status,
             data,
             details,
@@ -38,18 +38,18 @@ async def create_container_in_collection(
             raise
 
 
-async def create_container_config(
+async def create_bubble_config(
     collection_name,
-    config: container_model.ContainerConfig,
+    config: bubble_model.CreateBubble,
 ) -> Tuple[bool, str]:
     mongo_manager = MongoDBManager(collection_name)
     try:
         status, data, details = await mongo_manager.insert_document(
-            config.dict()
+            config.model_dump()
         )
         Logger.log(
             LogLevel.DEBUG,
-            "create_container_in_collections:",
+            "create_bubble_in_collections:",
             status,
             data,
             details,
@@ -69,18 +69,18 @@ async def create_container_config(
     return status, new_document_id
 
 
-async def update_container_config(
+async def update_bubble_config(
     collection_name,
-    config: container_model.ContainerConfig,
+    config: bubble_model.BubbleConfig,
 ) -> Tuple[bool, str]:
     mongo_manager = MongoDBManager(collection_name)
     try:
         status, data, details = await mongo_manager.update_one_document(
-            query={"_id": ObjectId(config.id)}, update_data=config.dict()
+            query={"_id": ObjectId(config.id)}, update_data=config.model_dump()
         )
         Logger.log(
             LogLevel.DEBUG,
-            "update_container_config:",
+            "update_bubble_config:",
             status,
             data,
             details,
@@ -100,18 +100,18 @@ async def update_container_config(
     return status, new_document_id
 
 
-async def get_container_data(
+async def get_bubble_data(
     collection_name: str,
-    container_id: ObjectId,
-) -> Tuple[bool, container_model.ContainerConfig]:
+    bubble_id: ObjectId,
+) -> Tuple[bool, bubble_model.BubbleConfig]:
     mongo_manager = MongoDBManager(collection_name)
     try:
         status, data, details = await mongo_manager.find_one(
-            {"_id": container_id}
+            {"_id": bubble_id}
         )
         Logger.log(
             LogLevel.DEBUG,
-            "get_container_data:",
+            "get_bubble_data:",
             status,
             data,
             details,
@@ -131,4 +131,12 @@ async def get_container_data(
         except Exception:
             raise
 
-    return status, container_model.ContainerConfig(**data)
+    return status, bubble_model.BubbleConfig(**data)
+
+
+async def delete_bubble_in_collection():
+    pass
+
+
+async def delete_bubble_config():
+    pass

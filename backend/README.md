@@ -29,7 +29,7 @@ directly ref to the document
   "email": "admin_email",
   "password": "hashed_password",
   "roles": ["admin"],
-  "containers": [ObjectId("objectidforcontainera"), ObjectId("objectidforcontainerb")]
+  "bubbles": [ObjectId("objectidforbubblea"), ObjectId("objectidforbubbleb")]
 }
 ```
 
@@ -37,9 +37,9 @@ directly ref to the document
 
 ```json
 {
-  "ContainerA": {
-    "_id": "ObjectId(objectidforcontainera)",
-    "name": "ContainerA",
+  "bubbleA": {
+    "_id": "ObjectId(objectidforbubblea)",
+    "name": "bubbleA",
     "user": [
       {
         "_id": "ObjectId(user_id_1)",
@@ -50,9 +50,9 @@ directly ref to the document
       }
     ]
   },
-  "ContainerB": {
-    "_id": "ObjectId(objectidforcontainerb)",
-    "name": "ContainerB",
+  "bubbleB": {
+    "_id": "ObjectId(objectidforbubbleb)",
+    "name": "bubbleB",
     "user": [
       {
         "_id": "ObjectId(user_id_1)",
@@ -70,15 +70,15 @@ directly ref to the document
 
 ```json
 {
-  "ContainerA": {
-    "_id": "ObjectId(objectidforcontainera)",
-    "name": "ContainerA",
+  "bubbleA": {
+    "_id": "ObjectId(objectidforbubblea)",
+    "name": "bubbleA",
     "applications": [
       {
         "_id": "ObjectId(app_id_1)",
         "name": "App 1",
         "version": "1.0",
-        "default_access": "users of containera"
+        "default_access": "users of bubblea"
       },
       {
         "_id": "ObjectId(app_id_2)",
@@ -87,9 +87,9 @@ directly ref to the document
       }
     ]
   },
-  "ContainerB": {
-    "_id": "ObjectId(objectidforcontainerb)",
-    "name": "ContainerB",
+  "bubbleB": {
+    "_id": "ObjectId(objectidforbubbleb)",
+    "name": "bubbleB",
     "applications": []
   }
 }

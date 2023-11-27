@@ -1,4 +1,5 @@
 from typing import List, Optional
+from authly.models import bubble_model
 from pydantic import BaseModel, EmailStr
 
 
@@ -14,7 +15,7 @@ class AdminAccount(BaseModel):
     email: EmailStr
     role: List[str]
     geo_location: str  # for timezone :)
-    container: List
+    bubble: List
     settings: List
 
 
@@ -25,3 +26,13 @@ class AllAdminAccounts(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class CreateBubble(BaseModel):
+    name: str
+    settings: Optional[bubble_model.BubbleSettings]
+
+
+class CreateBubbleResponse(BaseModel):
+    id: str
+    name: str

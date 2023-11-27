@@ -17,7 +17,7 @@ async def create_admin_account(
             email=data.email,
             role=["Admin"],
             geo_location="",
-            container=[],
+            bubble=[],
             settings={},
         )
     )

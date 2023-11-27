@@ -1,22 +1,24 @@
-from authly.crud import crud_user
-from authly.dependencies.container import get_container_config
-from authly.models.container_model import ContainerConfig
+from authly.dependencies.bubble import get_bubble_config
+from authly.models.bubble_model import BubbleConfig
 from fastapi import APIRouter, Depends
 
 
 user = APIRouter()
 
 
-@user.get("/{container_id}/")
+@user.get("/{bubble_id}")
 async def user_router_hello_world(
-    container_id: str, config: ContainerConfig = Depends(get_container_config)
+    config: BubbleConfig = Depends(get_bubble_config),
 ):
     return {
-        "msg": f"Hello World from container with id: {config.id}",
+        "msg": f"Hello World from bubble with id: {config.id}",
         "name": config.name,
     }
 
 
-@user.post("/create/{container_id}")
-async def create_user(config: ContainerConfig = Depends(get_container_config)):
-    result = await crud_user.create_new_user(config.user_document_id, )
+@user.post("/create/{bubble_id}")
+async def create_user(config: BubbleConfig = Depends(get_bubble_config)):
+    pass
+    # result = await crud_user.create_new_user(
+    #     config.user_document_id,
+    # )
