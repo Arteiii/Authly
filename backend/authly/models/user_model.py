@@ -9,12 +9,12 @@ class CreateUser(BaseModel):
 
 class UsernameHistoryEntry(BaseModel):
     from_date: str
-    to_date: Optional[str]
+    to_date: Optional[str] = None
 
 
 class EmailHistoryEntry(BaseModel):
     from_date: str
-    to_date: Optional[str]
+    to_date: Optional[str] = None
 
 
 class UserKey(BaseModel):
@@ -24,7 +24,7 @@ class UserKey(BaseModel):
 
 
 class UserAccount(BaseModel):
-    id: Optional[str]
+    id: Optional[str] = None
     username: str
     email: str
     password: str
@@ -39,7 +39,6 @@ class UserAccount(BaseModel):
 
 
 class UserDB(BaseModel):
-    id: Optional[str]
     bubble_id: str
     bubble_name: str
-    user: List[UserAccount]
+    users: Optional[List[UserAccount]]

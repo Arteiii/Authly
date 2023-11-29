@@ -83,6 +83,8 @@ async def get_admin_user(
     mongo_manager = MongoDBManager(ADMIN_COLLECTION)
     try:
         (status, data, details) = await mongo_manager.find_one({key: value})
+
+        Logger.log(LogLevel.DEBUG, status, data, details)
         if not status:
             raise ValueError("invalid email/username")
 

@@ -1,21 +1,25 @@
-from typing import Tuple
+from typing import Tuple, Union
 from authly.db.mongo import MongoDBManager
 from authly.core.utils.log import Logger, LogLevel
-from authly.models import bubble_model, user_model
+from authly.models import (
+    application_model,
+    bubble_model,
+    key_model,
+    user_model,
+)
 from bson import InvalidDocument, ObjectId
 
 
 async def create_bubble_in_collection(
     collection: str,
-    config: user_model.UserDB,
+    config: Union[
+        user_model.UserDB, application_model.ApplicationDB, key_model.KeyDB
+    ],
 ) -> str:
     mongo_manager = MongoDBManager(collection)
     try:
         status, data, details = await mongo_manager.insert_document(
-            {
-                "bubble_id": config.bubble_id,
-                "bubble_name": config.bubble_name,
-            }
+            config.model_dump()
         )
         Logger.log(
             LogLevel.DEBUG,
@@ -75,8 +79,9 @@ async def update_bubble_config(
 ) -> Tuple[bool, str]:
     mongo_manager = MongoDBManager(collection_name)
     try:
+        print(config.model_dump())
         status, data, details = await mongo_manager.update_one_document(
-            query={"_id": ObjectId(config.id)}, update_data=config.model_dump()
+            {"_id": ObjectId(config.id)}, {**config.model_dump()}
         )
         Logger.log(
             LogLevel.DEBUG,

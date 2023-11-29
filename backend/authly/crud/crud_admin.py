@@ -70,7 +70,7 @@ async def get_admin_account_by_name(username: str):
 
 async def get_admin_account_by_email(email: str) -> admin_model.AdminAccount:
     try:
-        return await admin.get_admin_user("email", email)
+        return await admin.get_admin_user("email", email.lower())
 
     except ValueError:
         raise

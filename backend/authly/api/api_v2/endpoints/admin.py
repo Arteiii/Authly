@@ -1,14 +1,15 @@
-from typing import Annotated
-from authly.api.api_v2 import http_exceptions
-from authly.core.utils.log import LogLevel, Logger
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.exceptions import ValidationException
+from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from authly.models import bubble_model
+
+from authly.api.api_v2 import http_exceptions
+from authly.api.api_v2.models import admin_endpoint_model
+
+from authly.core.utils.log import LogLevel, Logger
+from authly.models import bubble_model, admin_model
 from authly.crud import crud_admin, crud_bubble
-from authly.models import admin_model as core
-from authly.api.api_v2.models import admin_model
 from authly.security.authentication import admin_auth
 
 admin = APIRouter()
@@ -21,13 +22,13 @@ async def admin_router_hello_world():
     return {"msg": "Hello World from admin endpoint"}
 
 
-@admin.post("/", response_model=admin_model.CreateAdminReponse)
+@admin.post("/", response_model=admin_endpoint_model.CreateAdminReponse)
 async def create_admin(
     user_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
     try:
         success, result, details = await crud_admin.create_admin_account(
-            core.CreateAdmin(
+            admin_model.CreateAdmin(
                 password=user_data.password, email=user_data.username
             )
         )
@@ -45,7 +46,7 @@ async def create_admin(
         return result
 
 
-@admin.post("/token", response_model=admin_model.Token)
+@admin.post("/token", response_model=admin_endpoint_model.Token)
 async def admin_login(
     user_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
@@ -73,19 +74,19 @@ async def admin_login(
         }
 
 
-@admin.get("/me", response_model=admin_model.AdminAccount)
+@admin.get("/me", response_model=admin_endpoint_model.AdminAccount)
 async def get_current_admin_user(
     current_user: Annotated[
-        core.AdminAccount, Depends(admin_auth.get_current_admin_user)
+        admin_model.AdminAccount, Depends(admin_auth.get_current_admin_user)
     ]
 ):
     return current_user
 
 
-@admin.get("/all", response_model=admin_model.AllAdminAccounts)
+@admin.get("/all", response_model=admin_endpoint_model.AllAdminAccounts)
 async def get_all_admin_accounts(
     current_user: Annotated[
-        core.AdminAccount, Depends(admin_auth.get_current_admin_user)
+        admin_model.AdminAccount, Depends(admin_auth.get_current_admin_user)
     ]
 ):
     try:
@@ -105,9 +106,18 @@ async def get_all_admin_accounts(
         return result
 
 
-@admin.post("/bubble", response_model=admin_model.CreateBubbleResponse)
-async def create_new_bubble(data: admin_model.CreateBubble):
-    return await crud_bubble.creat_new_bubble(data)
+@admin.post(
+    "/bubble", response_model=admin_endpoint_model.CreateBubbleResponse
+)
+async def create_new_bubble(
+    data: bubble_model.CreateBubble,
+    current_user: Annotated[
+        admin_model.AdminAccount, Depends(admin_auth.get_current_admin_user)
+    ],
+):
+    return await crud_bubble.creat_new_bubble(
+        bubble_model.CreateBubble(**dict(data))
+    )
 
 
 @admin.put("/update/bubble")
@@ -121,7 +131,7 @@ async def update_bubble_settings():
         id=None,
         key_document_id=None,
         user_document_id=None,
-        application_id=None,
+        application_document_id=None,
         name="Test123",
         settings=settings,
     )

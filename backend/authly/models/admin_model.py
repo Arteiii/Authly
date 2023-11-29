@@ -8,7 +8,7 @@ class CreateAdmin(BaseModel):
 
 
 class AdminAccount(BaseModel):
-    id: Optional[str]
+    id: Optional[str] = None
     username: str
     password: str
     email: EmailStr

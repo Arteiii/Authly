@@ -1,5 +1,4 @@
 from typing import List, Optional
-from authly.models import bubble_model
 from pydantic import BaseModel, EmailStr
 
 
@@ -10,7 +9,7 @@ class CreateAdminReponse(BaseModel):
 
 
 class AdminAccount(BaseModel):
-    id: Optional[str]
+    id: Optional[str] = None
     username: str
     email: EmailStr
     role: List[str]
@@ -26,11 +25,6 @@ class AllAdminAccounts(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-
-
-class CreateBubble(BaseModel):
-    name: str
-    settings: Optional[bubble_model.BubbleSettings]
 
 
 class CreateBubbleResponse(BaseModel):

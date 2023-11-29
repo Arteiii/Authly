@@ -2,7 +2,12 @@ import asyncio
 from authly.core.utils.log import Logger
 from authly.core.utils.log import LogLevel
 from authly.interface import bubble
-from authly.models import bubble_model, user_model
+from authly.models import (
+    application_model,
+    bubble_model,
+    user_model,
+    key_model,
+)
 
 BUBBLES_COLLECTION: str = "Bubbles"
 KEYS_COLLECTION: str = "Keys"
@@ -14,32 +19,49 @@ async def creat_new_bubble(
     create: bubble_model.CreateBubble,
 ) -> bubble_model.BubbleConfig:
     try:
-        result = bubble_model.BubbleConfig
-        result.name = create.name
+        result = bubble_model.BubbleConfig(
+            name=create.name,
+            id=None,
+            settings=create.settings,
+            user_document_id=None,
+            key_document_id=None,
+            application_document_id=None,
+        )
 
         _, result.id = await bubble.create_bubble_config(
             BUBBLES_COLLECTION, create
         )
 
         Logger.log(LogLevel.DEBUG, result.id, type(result.id))
-        bubble_config = user_model.UserDB(
-            id=None,
+        user_bubble_config = user_model.UserDB(
             bubble_id=result.id,
             bubble_name=result.name,
-            user=[],
+            users=[],
+        )
+        key_bubble_config = key_model.KeyDB(
+            bubble_id=result.id,
+            bubble_name=result.name,
+            keys={},
+        )
+        application_bubble_config = application_model.ApplicationDB(
+            bubble_id=result.id,
+            bubble_name=result.name,
+            applications=[],
         )
 
         (
             result.key_document_id,
             result.user_document_id,
-            result.application_id,
+            result.application_document_id,
         ) = await asyncio.gather(
-            bubble.create_bubble_in_collection(KEYS_COLLECTION, bubble_config),
             bubble.create_bubble_in_collection(
-                USERS_COLLECTION, bubble_config
+                USERS_COLLECTION, user_bubble_config
             ),
             bubble.create_bubble_in_collection(
-                APPLICATIONS_COLLECTION, bubble_config
+                KEYS_COLLECTION, key_bubble_config
+            ),
+            bubble.create_bubble_in_collection(
+                APPLICATIONS_COLLECTION, application_bubble_config
             ),
         )
 
