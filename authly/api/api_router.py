@@ -8,7 +8,7 @@ from authly.core.utils.log import Logger, LogLevel
 from authly.core.config import application_config
 
 # routes:
-from user.endpoint import user as user_route
+from authly.api.user.endpoint import user as user_router
 
 API_CONFIG = application_config.API  # type: ignore
 
@@ -40,7 +40,7 @@ Logger.log(
     f"        \\__ https://example.com{API_ROUTE}/",
 )
 
-api_main_router.include_router(user_route, prefix="/user")
+api_main_router.include_router(user_router, prefix="/user")
 
 
 @api_main_router.get("/")
