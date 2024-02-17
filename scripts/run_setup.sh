@@ -24,4 +24,4 @@ pipx install poetry
 
 poetry install
 
-poetry run python3 -m ./authly/app.py
+poetry run python3 main.py deploy
