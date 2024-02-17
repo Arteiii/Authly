@@ -2,11 +2,13 @@
 routes for different api versions
 """
 
+from fastapi import APIRouter
 
 from authly.core.utils.log import Logger, LogLevel
-from authly.api.api_v2.api import api_v2_router as api_v2
 from authly.core.config import application_config
-from fastapi import APIRouter
+
+# routes:
+from user.endpoint import user as user_route
 
 API_CONFIG = application_config.API  # type: ignore
 
@@ -34,11 +36,11 @@ def check_api_paths(f, s) -> bool:
 
 Logger.log(
     LogLevel.INFO,
-    "devlopment/testing api is available at:",
-    f"        \\__ https://example.com{API_ROUTE}/v2",
+    "API is available at:",
+    f"        \\__ https://example.com{API_ROUTE}/",
 )
 
-api_main_router.include_router(api_v2, prefix="/v2")
+api_main_router.include_router(user_route, prefix="/user")
 
 
 @api_main_router.get("/")

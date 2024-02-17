@@ -8,16 +8,15 @@ def check_dependencies(dependencies: list):
             importlib.import_module(dependency)
         except ImportError:
             raise ImportError(
-                f"The dependency {dependency} "
-                "is not installed or not reachable."
+                f"The dependency {dependency} " "is not installed or not reachable."
             )
         print(f"{dependency}")
 
 
-def print_logo(col, file_path: str = "./ascii_art.txt"):
+def print_logo(col, reset, file_path: str = "../ascii_art.txt"):
     with open(file_path, "r") as file:
         ascii_art = file.read()
-        print(f"{col}{ascii_art}")
+        print(f"{col}{ascii_art}{reset}")
 
 
 def main():
@@ -32,14 +31,17 @@ def main():
         "exrex",
     ]
 
-    base_path = os.path.dirname(os.path.abspath(__file__))
+    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     check_dependencies(dependencies_to_check)
 
-    from colorama import Fore
+    from colorama import Fore, Style
 
     print("\033c", end="")  # clear screen
-    print_logo(Fore.MAGENTA, f"{base_path}/ascii_art.txt")
+
+    print(os.path.join(base_path, "ascii_art.txt"))
+
+    print_logo(Fore.MAGENTA, Style.RESET_ALL, f"{base_path}/ascii_art.txt")
 
 
 main()

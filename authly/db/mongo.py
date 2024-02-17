@@ -23,6 +23,7 @@ Usage:
 Author: Arteii
 Date: 20/11/2023
 """
+
 from typing import Any, Tuple, List, Dict
 import motor.motor_asyncio
 
@@ -48,16 +49,12 @@ class MongoDBManager:
         self.client: motor.motor_asyncio.AsyncIOMotorClient = (
             motor.motor_asyncio.AsyncIOMotorClient(db_url)
         )
-        self.db: motor.motor_asyncio.AsyncIOMotorDatabase = self.client[
-            db_name
-        ]
+        self.db: motor.motor_asyncio.AsyncIOMotorDatabase = self.client[db_name]
         self.collection: motor.motor_asyncio.AsyncIOMotorCollection = self.db[
             collection_name
         ]
 
-    async def insert_document(
-        self, data: Dict[str, Any]
-    ) -> Tuple[bool, Any, str]:
+    async def insert_document(self, data: Dict[str, Any]) -> Tuple[bool, Any, str]:
         """
         Insert a document into the collection.
 
@@ -84,17 +81,14 @@ class MongoDBManager:
             return (
                 False,
                 None,
-                "Duplicate key error: "
-                "Document with the same key already exists",
+                "Duplicate key error: " "Document with the same key already exists",
             )
         except Exception as e:
             return False, None, f"Error inserting document: {e}"
         else:
             return True, result.inserted_id, "Document inserted successfully"
 
-    async def find_one(
-        self, query: Dict[str, Any]
-    ) -> Tuple[bool, Dict[str, Any], str]:
+    async def find_one(self, query: Dict[str, Any]) -> Tuple[bool, Dict[str, Any], str]:
         """
         Find a single document based on the query.
 
@@ -182,9 +176,7 @@ class MongoDBManager:
                 result, and status message.
         """
         try:
-            result = await self.collection.update_one(
-                query, {"$set": update_data}
-            )
+            result = await self.collection.update_one(query, {"$set": update_data})
 
         except Exception as e:
             return False, None, f"Error updating document: {e}"
@@ -193,9 +185,11 @@ class MongoDBManager:
             return (
                 True,
                 result,
-                "Document updated successfully"
-                if result.modified_count > 0
-                else "Document not updated",
+                (
+                    "Document updated successfully"
+                    if result.modified_count > 0
+                    else "Document not updated"
+                ),
             )
 
     async def replace_one_document(
@@ -220,14 +214,14 @@ class MongoDBManager:
             return (
                 True,
                 result,
-                "Document replaced successfully"
-                if result.modified_count > 0
-                else "Document not replaced",
+                (
+                    "Document replaced successfully"
+                    if result.modified_count > 0
+                    else "Document not replaced"
+                ),
             )
 
-    async def delete_document(
-        self, query: Dict[str, Any]
-    ) -> Tuple[bool, Any, str]:
+    async def delete_document(self, query: Dict[str, Any]) -> Tuple[bool, Any, str]:
         """
         Delete a single document based on the query.
 
@@ -246,9 +240,11 @@ class MongoDBManager:
             return (
                 True,
                 result,
-                "Document deleted successfully"
-                if result.deleted_count > 0
-                else "Document not deleted",
+                (
+                    "Document deleted successfully"
+                    if result.deleted_count > 0
+                    else "Document not deleted"
+                ),
             )
 
     async def delete_many_documents(
@@ -272,9 +268,11 @@ class MongoDBManager:
             return (
                 True,
                 result,
-                f"{result.deleted_count} documents deleted"
-                if result.deleted_count > 0
-                else "No documents deleted",
+                (
+                    f"{result.deleted_count} documents deleted"
+                    if result.deleted_count > 0
+                    else "No documents deleted"
+                ),
             )
 
     async def close_connection(self) -> Tuple[bool, str, str]:
