@@ -12,7 +12,11 @@ def run_development():
     # port=8000: The port number on which the server will listen for incoming connections
     # reload=True: Enables automatic code reloading when changes are detected during development
     uvicorn.run(
-        "authly.app:app", host="127.0.0.1", port=8080, log_level="debug", reload=True
+        "authly.app:app",
+        host="127.0.0.1",
+        port=8080,
+        log_level="debug",
+        reload=True,
     )
 
     # log_level="debug": The log level for uvicorn. Controls the verbosity of log messages
@@ -27,7 +31,11 @@ def run_development():
 def run_production():
     # Production configuration using uvicorn
     uvicorn.run(
-        "authly.app:app", host="0.0.0.0", port=80, log_level="info", reload=False
+        "authly.app:app",
+        host="0.0.0.0",
+        port=80,
+        log_level="info",
+        reload=False,
     )
 
 

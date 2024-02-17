@@ -8,7 +8,8 @@ def check_dependencies(dependencies: list):
             importlib.import_module(dependency)
         except ImportError:
             raise ImportError(
-                f"The dependency {dependency} " "is not installed or not reachable."
+                f"The dependency {dependency} "
+                "is not installed or not reachable."
             )
         print(f"{dependency}")
 
