@@ -11,7 +11,9 @@ from authly.api.api_router import api_main_router
 Debug = application_config.Debug_Authly.DEBUG  # type: ignore
 api_config = application_config.API  # type: ignore
 
-origins = ["*"]  # list of origins which are allowed to make requests to the api
+origins = [
+    "*"
+]  # list of origins which are allowed to make requests to the api
 # (default: "*")
 
 
