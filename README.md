@@ -177,10 +177,4 @@ We appreciate the contributions of all our collaborators and supporters.
 
 ## License
 
-Authly is licensed under the MIT License with additional clauses:
-
-- **Copyleft Clause** </br>
-  Any modifications, adaptations, or derivative works based on this software must be made publicly available on GitHub with proper attribution to the original developer Arteii by adding a link to the original repository.
-
-- **Commercial Use Attribution Clause** </br>
-  For any commercial use of this software, proper attribution to the original developer Arteii is required, and a link to the original repository on GitHub must be provided.
+Authly is licensed under the Affero General Public License v3.0 (AGPLv3). See the [LICENSE](LICENSE) file for details.
