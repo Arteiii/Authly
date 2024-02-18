@@ -1,6 +1,5 @@
-import uvicorn
-import hypercorn
 import sys
+import uvicorn
 
 
 def run_development():
@@ -45,7 +44,7 @@ def run_custom(**kwargs):
 
 
 def main():
-    if len(sys.argv) < 2 or sys.argv[1] not in ["dev", "production", "custom"]:
+    if len(sys.argv) < 2 or sys.argv[1] not in ["dev", "deploy", "custom"]:
         print("Usage:")
         print("Development: python main.py dev")
         print("Production: python main.py deploy")
