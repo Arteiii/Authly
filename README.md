@@ -1,8 +1,10 @@
 # Authly
 
-Authly is a user management application built on [FastAPI](https://fastapi.tiangolo.com/) in Python, designed to provide user authentication and access control for various applications.
+[![CodeFactor](https://www.codefactor.io/repository/github/wavy42/authly/badge)](https://www.codefactor.io/repository/github/wavy42/authly)
 
-## [![CodeFactor](https://www.codefactor.io/repository/github/wavy42/authly/badge)](https://www.codefactor.io/repository/github/wavy42/authly)
+[![LICENSE](https://github.com/Arteiii/Authly/blob/main/LICENSE)](https://img.shields.io/github/license/Arteiii/authly.svg)
+
+Authly is a user management application built on [FastAPI](https://fastapi.tiangolo.com/) in Python, designed to provide user authentication and access control for various applications.
 
 ## Commercial Use
 
@@ -49,10 +51,47 @@ We highly recommend writing tests for your application to ensure its reliability
 
 ## Authly Backend
 
-with fastapi
+## Python Environment Setup
 
-Python Enviroment:
-<https://python-poetry.org/>
+This project uses [Poetry](https://python-poetry.org/) for managing the Python environment
+
+### Development Environment
+
+To run the application in development mode, use the following command:
+
+```shell
+poetry run python main.py dev
+```
+
+### Release Environment
+
+For the release environment, execute the following command:
+
+```shell
+poetry run python main.py deploy
+```
+
+### Docker Release
+
+To run the application in a Dockerized environment, including the setup of MongoDB and Redis, use the following command:
+
+```shell
+docker-compose up --build -d
+```
+
+The -d option runs the containers in the background
+
+### Note
+
+Make sure to have Docker installed before running the Docker release command.
+You can install Docker from <https://www.docker.com/get-started>.
+
+Feel free to adjust the configurations in the docker-compose.yml file to match your requirements.
+
+### Important
+
+Ensure that the necessary environment variables are properly configured, especially when deploying in production.
+Refer to the project documentation for details on configuring environment variables
 
 ## Mongo Schema
 
@@ -171,16 +210,9 @@ Authly is developed by wavy42 & Arteii.
 
 We appreciate the contributions of all our collaborators and supporters.
 
-**Frontend:** </br>
-[windmill-ui](https://windmillui.com/) </br>
-[shadcn/ui](https://ui.shadcn.com/) </br>
+the frontend beta is available here:  
+[AuthlyFrontend](https://github.com/Arteiii/AuthlyFrontend)
 
 ## License
 
-Authly is licensed under the MIT License with additional clauses:
-
-- **Copyleft Clause** </br>
-  Any modifications, adaptations, or derivative works based on this software must be made publicly available on GitHub with proper attribution to the original developer Arteii by adding a link to the original repository.
-
-- **Commercial Use Attribution Clause** </br>
-  For any commercial use of this software, proper attribution to the original developer Arteii is required, and a link to the original repository on GitHub must be provided.
+Authly is licensed under the Affero General Public License v3.0 (AGPLv3). See the [LICENSE](LICENSE) file for details.

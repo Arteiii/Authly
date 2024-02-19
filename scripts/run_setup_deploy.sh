@@ -14,10 +14,6 @@ if [ -z "$(command -v python3)" ]; then
     fi
 fi
 
-# Navigate to your Python project directory
-project_directory=" ../backend/"  # Adjust the path accordingly
-
-cd "$project_directory" || exit
 
 python3 -m pip install --user pipx
 python3 -m pipx ensurepath
@@ -28,4 +24,4 @@ pipx install poetry
 
 poetry install
 
-poetry run python3 -m ./authly/app.py
+poetry run python3 main.py deploy
