@@ -2,7 +2,7 @@
 
 [![CodeFactor](https://www.codefactor.io/repository/github/wavy42/authly/badge)](https://www.codefactor.io/repository/github/wavy42/authly)
 
-[![LICENSE](https://github.com/Arteiii/Authly/blob/main/LICENSE)](https://img.shields.io/github/license/Arteiii/authly.svg)
+[![LICENSE](LICENSE)](<https://img.shields.io/github/license/Arteiii/Authly>)
 
 Authly is a user management application built on [FastAPI](https://fastapi.tiangolo.com/) in Python, designed to provide user authentication and access control for various applications.
 
