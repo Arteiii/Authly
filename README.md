@@ -105,26 +105,6 @@ in the db collections:
 
 user/ applications in a collection also get there own object ids (`new ObjectId()`)
 
-### Bubble Collection
-
-currently:
-
-```json
-{
-  "_id": {
-    "$oid": "exmaple oid of bubble collection"
-  },
-  "name": "string",
-  "settings": {
-    "allow_new_user_registration": true,
-    "test_settings": "HelloWorld",
-    "bliblablu": true
-  },
-  "application_document_id": "example oid 1",
-  "key_document_id": "example oid 2",
-  "user_document_id": "example oid 3"
-}
-```
 
 ### Admin collection
 
@@ -139,7 +119,6 @@ directly ref to the document
   "email": "admin_email",
   "password": "hashed_password",
   "roles": ["admin"],
-  "bubbles": [ObjectId("objectidforbubblea"), ObjectId("objectidforbubbleb")]
 }
 ```
 
