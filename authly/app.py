@@ -6,10 +6,13 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from authly.core.config import application_config
 from authly.api.api_router import api_main_router
+from authly.core.utils.log import Logger, LogLevel
 
 
 Debug = application_config.Debug_Authly.DEBUG  # type: ignore
 api_config = application_config.API  # type: ignore
+
+Logger.debug_log(True)
 
 origins = [
     "*"

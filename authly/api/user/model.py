@@ -1,10 +1,18 @@
 from typing import List, Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+from enum import Enum
 
 
-class CreateUser(BaseModel):
-    password: str
-    email: EmailStr
+class UserRole(str, Enum):
+    ADMIN = "ADMIN"
+    USER = "USER"
+    MODERATOR = "MODERATOR"
+
+
+class CreateUserResponse(BaseModel):
+    id: Optional[str]
+    username: str
+    email: str
 
 
 class UsernameHistoryEntry(BaseModel):
@@ -28,11 +36,11 @@ class User(BaseModel):
     username: str
     email: str
     password: str
-    role: List[str]
+    role: List[UserRole]
     disabled: bool
-    geo_location: str
-    username_history: List[UsernameHistoryEntry]
-    email_history: List[EmailHistoryEntry]
-    keys: List[UserKey]
-    settings: List
+    geo_location: Optional[str] = None
+    username_history: Optional[List[UsernameHistoryEntry]] = []
+    email_history: Optional[List[EmailHistoryEntry]] = []
+    # keys: Optional[List[UserKey]] = []
+    # settings: Optional[List] = []
     # add last seen and last login
