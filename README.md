@@ -1,5 +1,7 @@
 # Authly
 
+(work-in-progress)
+
 [![FastAPI](https://ziadoua.github.io/m3-Markdown-Badges/badges/FastAPI/fastapi3.svg)](https://fastapi.tiangolo.com/)
 
 [![CodeFactor](https://www.codefactor.io/repository/github/wavy42/authly/badge)](https://www.codefactor.io/repository/github/wavy42/authly)
@@ -104,7 +106,6 @@ in the db collections:
 - Applications collection
 
 user/ applications in a collection also get there own object ids (`new ObjectId()`)
-
 
 ### Admin collection
 
