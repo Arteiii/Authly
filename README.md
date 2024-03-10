@@ -1,5 +1,7 @@
 # Authly
 
+(work-in-progress)
+
 [![FastAPI](https://ziadoua.github.io/m3-Markdown-Badges/badges/FastAPI/fastapi3.svg)](https://fastapi.tiangolo.com/)
 
 [![CodeFactor](https://www.codefactor.io/repository/github/wavy42/authly/badge)](https://www.codefactor.io/repository/github/wavy42/authly)
@@ -105,27 +107,6 @@ in the db collections:
 
 user/ applications in a collection also get there own object ids (`new ObjectId()`)
 
-### Bubble Collection
-
-currently:
-
-```json
-{
-  "_id": {
-    "$oid": "exmaple oid of bubble collection"
-  },
-  "name": "string",
-  "settings": {
-    "allow_new_user_registration": true,
-    "test_settings": "HelloWorld",
-    "bliblablu": true
-  },
-  "application_document_id": "example oid 1",
-  "key_document_id": "example oid 2",
-  "user_document_id": "example oid 3"
-}
-```
-
 ### Admin collection
 
 currently:
@@ -139,7 +120,6 @@ directly ref to the document
   "email": "admin_email",
   "password": "hashed_password",
   "roles": ["admin"],
-  "bubbles": [ObjectId("objectidforbubblea"), ObjectId("objectidforbubbleb")]
 }
 ```
 
