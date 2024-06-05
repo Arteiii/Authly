@@ -1,0 +1,62 @@
+#file: noinspection SpellCheckingInspection
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - target: 80
+        published: 1024 # for testing
+        mode: host
+    #      - target: 443
+    #        published: 443
+    #        mode: host
+    restart: unless-stopped
+    networks:
+      - backend
+      - frontend
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    healthcheck:
+      test: [ "CMD", "curl", "-k", "https://google.com/" ]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+
+  authly-backend:
+    image: authly
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/authly
+      - REDIS_URL=redis://redis:6379
+
+  postgres:
+    image: postgres:alpine
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: authly_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres:

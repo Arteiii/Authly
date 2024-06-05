@@ -1,0 +1,5 @@
+[workspace]
+members = ["authly"]
+resolver = "2"
+
+default-members = ["authly"]
