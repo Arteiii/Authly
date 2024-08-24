@@ -1,5 +1,7 @@
 # Authly
 
+Currently in rework for a rust backend
+
 ## License
 
 Authly is licensed under the Affero General Public License v3.0 (AGPL-3).
